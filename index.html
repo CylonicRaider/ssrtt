@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>SSRTT</title>
+    <link rel="stylesheet" type="text/css" href="static/base.css"/>
+    <script type="text/javascript" src="static/base.js"
+      defer="defer"></script>
+    <script type="text/javascript" src="static/main.js"
+      defer="defer"></script>
+    <style type="text/css">
+main {
+  font-size: 5vh;
+  white-space: normal;
+  -webkit-animation: rotate 10s cubic-bezier(.5, .25, .5, .75);
+  animation: rotate 10s cubic-bezier(.5, .25, .5, .75);
+}
+h1 {
+  font-size: 10vh;
+  margin: 0;
+}
+h2 {
+  font-size: inherit;
+  font-weight: normal;
+  font-style: italic;
+  margin: 0;
+}
+    </style>
+    <script type="text/javascript">
+function update() {
+  function setLink(node, href) {
+    if (href == null) {
+      node.href = "#";
+      node.setAttribute("disabled", "disabled");
+    } else {
+      node.href = href;
+      node.removeAttribute("disabled");
+    }
+  }
+  var sid = document.getElementById("streamID");
+  var oid = document.getElementById("peerID");
+  var send = document.getElementById("send");
+  var recv = document.getElementById("subscribe");
+  var chme = document.getElementById("chatme");
+  var chth = document.getElementById("chatthem");
+  if (sid.value && ! /\//.test(sid.value)) {
+    var stream = encodeURIComponent(sid.value);
+    setLink(send, stream + "/write");
+    setLink(recv, stream);
+    if (oid.value && ! /\//.test(oid.value)) {
+      var peer = encodeURIComponent(oid.value);
+      setLink(chme, stream + "/chat/" + peer);
+      setLink(chth, peer + "/chat/" + stream);
+    } else {
+      setLink(chme, null);
+      setLink(chth, null);
+    }
+  } else {
+    setLink(send, null);
+    setLink(recv, null);
+    setLink(chme, null);
+    setLink(chth, null);
+  }
+}
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>SSRTT</h1>
+      <h2>Shiny Shared Rotating Text Thingy</h2>
+      <p class="small">Made by
+        <span style="color: hsl(148, 50%, 42%);">@Xyzzy</span> in 2016 and
+        2017</p>
+      <p>Want an own one? &rarr; <input type="text" id="streamID"
+        placeholder="Stream name" oninput="update()"
+        onchange="update()"/></p>
+      <p>&#8618; <a href="#" disabled="disabled" id="send">Send
+        <small>(for you)</small></a> | <a href="#" id="subscribe"
+        disabled="disabled">Subscribe <small>(for others)</small></a></p>
+      <p>Chat with someone? &rarr; <input type="text" id="peerID"
+        placeholder="Other stream name" oninput="update()"
+        onchange="update()"/></p>
+      <p>&#8618; <a href="#" disabled="disabled" id="chatme">Your side</a> |
+        <a href="#" disabled="disabled" id="chatthem">Other side</a></p>
+    </main>
+    <aside></aside>
+  </body>
+</html>

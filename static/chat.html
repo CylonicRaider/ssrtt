@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>SSRTT</title>
+    <script type="text/javascript" src="../../static/base.js"
+      defer="defer"></script>
+    <style type="text/css">
+html {
+  overflow: hidden;
+  color: white;
+  background: black;
+  font-family: "Times New Roman", serif;
+}
+iframe {
+  position: absolute;
+  top: 0;
+  width: 50vw;
+  height: 100vh;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.left {
+  left: 0;
+}
+.right {
+  right: 0;
+}
+    </style>
+    <script type="text/javascript">
+window.onload = function() {
+  function makeFocusUpdate(key, focus) {
+    return function() {
+      focuses[key] = focus;
+      if (setBlur)
+        setBlur(! (focuses.chat || focuses.left || focuses.right), true);
+    };
+  }
+  var m = /^(.*)\/([^/]+)\/chat\/([^/]+)$/.exec(location.pathname);
+  if (! m) {
+    alert("Bad URL");
+    return;
+  }
+  document.title = m[3] + " \u2194 " + m[2];
+  var focuses = {chat: true, left: false, right: false};
+  window.addEventListener("blur", makeFocusUpdate("chat", false));
+  window.addEventListener("focus", makeFocusUpdate("chat", true));
+  window.readBlurred = makeFocusUpdate("left", false);
+  window.readFocused = makeFocusUpdate("left", true);
+  window.writeBlurred = makeFocusUpdate("right", false);
+  window.writeFocused = makeFocusUpdate("right", true);
+  var left = document.querySelector(".left");
+  var right = document.querySelector(".right");
+  left.src = m[1] + "/" + m[3] + "/sread";
+  right.src = m[1] + "/" + m[2] + "/swrite";
+  var setBlur;
+  left.addEventListener("load", function() {
+    setBlur = left.contentWindow.setBlur;
+    if (setBlur) setBlur(false, true);
+  });
+};
+    </script>
+  </head>
+  <body>
+    <iframe class="left" src="about:blank"></iframe>
+    <iframe class="right" src="about:blank"></iframe>
+  </body>
+</html>

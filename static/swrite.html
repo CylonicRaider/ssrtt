@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>SSRTT</title>
+    <link rel="stylesheet" type="text/css" href="../static/base.css"/>
+    <script type="text/javascript" src="../static/base.js"
+      defer="defer"></script>
+    <script type="text/javascript" src="../static/main.js"
+      defer="defer"></script>
+    <style type="text/css">
+main {
+  outline: none;
+  text-align: left;
+  -webkit-animation: none;
+  animation: none;
+}
+main:not(.nope):not(:focus) {
+  min-width: 1em;
+  min-height: 1em;
+  box-shadow: 0 0 5vh #ffff80;
+}
+    </style>
+    <script type="text/javascript">
+window.onload = function() {
+  initWrite(["15vmin", "10vmin", "7.5vmin", "5vmin", "3.75vmin", "2.5vmin"]);
+};
+    </script>
+  </head>
+  <body>
+    <main contenteditable="true"></main>
+    <aside></aside>
+    <footer></footer>
+  </body>
+</html>

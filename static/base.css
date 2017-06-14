@@ -1,0 +1,80 @@
+
+html {
+  overflow: hidden;
+  color: white;
+  background: black;
+  font-family: "Times New Roman", serif;
+}
+body {
+  display: -webkit-flex;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+}
+main {
+  margin: auto;
+  max-width: 75vw;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 10vmin;
+  text-align: center;
+  -webkit-text-shadow: 0 0 5vh #ffff80;
+  text-shadow: 0 0 5vh #ffff80;
+  -webkit-animation: rotate 10s cubic-bezier(.5, .25, .5, .75) infinite;
+  animation: rotate 10s cubic-bezier(.5, .25, .5, .75) infinite;
+}
+main.nope {
+  color: #ff0000;
+}
+@keyframes rotate {
+  from { transform: perspective(100vw) rotateY(0deg); }
+    to { transform: perspective(100vw) rotateY(360deg); }
+}
+@-webkit-keyframes rotate {
+  from { transform: perspective(100vw) rotateY(0deg); }
+    to { transform: perspective(100vw) rotateY(360deg); }
+}
+aside {
+  position: fixed;
+  top: 0;
+  right: 0;
+  color: white;
+  font-size: 5vh;
+  text-shadow: 0 0 2.5vh #ffff80;
+}
+footer {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  color: white;
+  font-size: 5vh;
+  text-shadow: 0 0 2.5vh #ffff80;
+}
+p {
+  margin: 0;
+}
+p.small {
+  font-size: smaller;
+}
+big {
+  font-size: larger;
+}
+input {
+  font: inherit;
+}
+input[type=text] {
+  width: 10em;
+}
+a {
+  color: #8080ff;
+  text-decoration: none;
+}
+a[disabled] {
+  color: #808080;
+  cursor: inherit;
+}
+a:hover:not([disabled]) {
+  text-decoration: underline;
+}
