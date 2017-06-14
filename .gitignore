@@ -1,0 +1,7 @@
+# SSRTT gitignore
+*.py[co]
+__pycache__
+
+/spawn.bash
+
+*.log
