@@ -87,7 +87,7 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
     def send_404(self):
         self.send_string(404, self.NOT_FOUND)
 
-    def redirect_301(self, location):
+    def send_redirect(self, location):
         body_str = self.MOVED_PERMANENTLY % cgi.escape(location, True)
         body = body_str.encode('utf-8')
         self.send_response(301, len(body))
@@ -107,14 +107,18 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
                     ent = self.CACHE.get('index.html')
                 elif not path.endswith('/'):
                     # Ensure streams have a canonical URL.
-                    self.redirect_301(parts[0] + '/')
+                    self.send_redirect(parts[0] + '/')
                     return
                 else:
                     # HTML page reading the stream
                     ent = self.CACHE.get('static/index.html')
             elif len(parts) == 2:
                 code = parts[0]
-                if parts[1] == 'ws':
+                if path.endswith('/'):
+                    # No directories on this level.
+                    self.send_redirect(path.rstrip('/'))
+                    return
+                elif parts[1] == 'ws':
                     # WebSocket writing the stream
                     stream = self.get_stream(code)
                     if not stream.lock():
@@ -156,6 +160,10 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
                            self.CACHE.get(lpath + '.html'))
             elif len(parts) == 3:
                 if parts[1] == 'chat':
+                    if path.endswith('/'):
+                        # No directories here, too.
+                        self.send_redirect(path.rstrip('/'))
+                        return
                     ent = self.CACHE.get('static/chat.html')
             if ent:
                 ent.send(self)
