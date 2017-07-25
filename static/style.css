@@ -61,6 +61,13 @@ a:hover {
 a:active {
   color: #ff0000;
 }
+a[disabled] {
+  color: #808080;
+}
+a[disabled]:hover {
+  text-decoration: none;
+  cursor: inherit;
+}
 
 h1 {
   font-size: 2em;

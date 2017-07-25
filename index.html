@@ -5,6 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>SSRTT</title>
     <link rel="stylesheet" href="static/style.css"/>
+    <script type="application/javascript">
+function update() {
+  function setLink(link, target) {
+    if (target) {
+      link.href = target;
+      link.removeAttribute("disabled");
+    } else {
+      link.href = "#";
+      link.setAttribute("disabled", "disabled");
+    }
+  }
+  var ownText = document.getElementById("own-stream").value;
+  var otherText = document.getElementById("other-stream").value;
+  var ownLink = document.getElementById("own-link");
+  var otherLink = document.getElementById("other-link");
+  if (ownText && ! /\//.test(ownText)) {
+    var ownEnc = encodeURIComponent(ownText);
+    if (otherText && ! /\//.test(otherText)) {
+      var otherEnc = encodeURIComponent(otherText);
+      setLink(ownLink, ownEnc + "/chat/" + otherEnc);
+      setLink(otherLink, otherEnc + "/chat/" + ownEnc);
+    } else if (otherText) {
+      setLink(ownLink, null);
+      setLink(otherLink, null);
+    } else {
+      setLink(ownLink, ownEnc + "/write");
+      setLink(otherLink, ownEnc);
+    }
+  } else {
+    setLink(ownLink, null);
+    setLink(otherLink, null);
+  }
+}
+function validate(evt) {
+  if (evt.target.getAttribute("disabled"))
+    evt.preventDefault();
+}
+window.onload = function() {
+  var ownInput = document.getElementById("own-stream");
+  var otherInput = document.getElementById("other-stream");
+  var ownLink = document.getElementById("own-link");
+  var otherLink = document.getElementById("other-link");
+  ownInput.onchange = update;
+  ownInput.oninput = update;
+  otherInput.onchange = update;
+  otherInput.oninput = update;
+  ownLink.onclick = validate;
+  otherLink.onclick = validate;
+  update();
+};
+    </script>
   </head>
   <body class="full-size center-content">
     <main class="hl-main">
@@ -16,8 +67,8 @@
         placeholder="Stream name"/></p>
       <p>Chat with someone? <input type="text" id="other-stream"
         placeholder="Other stream name"/></p>
-      <p><a href="#" disabled="disabled">Your side</a> &bull;
-        <a href="#" disabled="disabled">Other side</a></p>
+      <p><a href="#" id="own-link" disabled="disabled">Your side</a> &bull;
+        <a href="#" id="other-link" disabled="disabled">Other side</a></p>
       <footer>Made by Xyzzy in 2016 &ndash; 2017.</footer>
     </main>
   </body>
