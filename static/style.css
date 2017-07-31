@@ -27,7 +27,7 @@ body {
 .right-half {
   left: 50%;
 }
-.center-content {
+.center-content, .main-box {
   display: -webkit-flex;
   -webkit-align-items: center;
   -webkit-justify-content: center;
@@ -85,4 +85,18 @@ input[type=text] {
   background: inherit;
   color: inherit;
   transition: border 0.1s, margin 0.1s;
+}
+
+/* Read/Write pages */
+.main-box > aside {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.main-box > div, .main-box > main {
+  margin: auto;
+}
+.main-box > .empty {
+  min-width: 1em;
+  min-height: 1em;
 }

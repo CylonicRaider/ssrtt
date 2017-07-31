@@ -149,7 +149,7 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
                             self.wfile.flush()
                             continue
                         ci = i.encode('utf-8')
-                        ri = (b'data: ' + ci.replace(b'\n', b'\ndata: ') +
+                        ri = (b'data: U:' + ci.replace(b'\n', b'\ndata: ') +
                               b'\n\n')
                         self.wfile.write(ri)
                         self.wfile.flush()

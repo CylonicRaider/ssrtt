@@ -6,10 +6,14 @@
     <title>SSRTT</title>
     <link rel="stylesheet" href="../static/style.css"/>
     <script src="../static/main.js" defer="defer"></script>
+    <script type="text/javascript">
+window.onload = function() {
+  receive(prepare(false), "main", null);
+};
+    </script>
   </head>
-  <body class="full-size">
-    <aside></aside>
-    <main></main>
-    <footer></footer>
+  <body class="full-size main-box">
+    <aside id="main-msg"></aside>
+    <main id="main"></main>
   </body>
 </html>
