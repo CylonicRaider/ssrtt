@@ -21,9 +21,8 @@ function receive(url, nodeID, callback) {
     messages.textContent = "";
   };
   events.onmessage = function(evt) {
-    var type = evt.data.slice(0, 2);
-    var text = evt.data.slice(2);
-    if (type != "U:" || text == main.textContent) return;
+    var text = evt.data;
+    if (text == main.textContent) return;
     main.textContent = text;
     if (callback) callback();
   };
