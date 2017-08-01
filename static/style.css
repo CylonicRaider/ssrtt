@@ -88,15 +88,21 @@ input[type=text] {
 }
 
 /* Read/Write pages */
+.main-box {
+  white-space: pre-wrap;
+}
 .main-box > aside {
   position: absolute;
   top: 0;
   right: 0;
 }
-.main-box > div, .main-box > main {
+.main-box > .main {
   margin: auto;
+  min-width: 1.2em;
+  min-height: 1.2em;
+  box-shadow: 0 0 0.7em #ffff80;
+  outline: none;
 }
-.main-box > .empty {
-  min-width: 1em;
-  min-height: 1em;
+.main-box > .main:focus {
+  box-shadow: none;
 }

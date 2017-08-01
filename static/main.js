@@ -34,14 +34,28 @@ function receive(url, nodeID, callback) {
   return events;
 }
 
+function replaceSelection(replacementText) {
+  /* Adapted from http://stackoverflow.com/a/3997896 */
+  var sel = window.getSelection();
+  if (sel.rangeCount) {
+    var range = sel.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(document.createTextNode(replacementText));
+    range.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+
 function send(url, nodeID, callback) {
   function updateText(newText) {
-    if (newText != null) main.textContent = newText;
-    if (main.textContent) {
-      main.classList.remove("empty");
-    } else {
-      main.classList.add("empty");
+    if (newText != null){
+      main.textContent = newText;
+      main.focus();
+      var sel = window.getSelection();
+      sel.collapse(main.firstChild, newText.length);
     }
+    /* External processing */
     if (callback) callback();
   }
   var main = document.getElementById(nodeID);
@@ -51,7 +65,6 @@ function send(url, nodeID, callback) {
   var ws = new WebSocket(url);
   ws.onopen = function(evt) {
     messages.textContent = "";
-    main.classList.add("empty");
     main.contentEditable = true;
   };
   ws.onmessage = function(evt) {
@@ -71,12 +84,18 @@ function send(url, nodeID, callback) {
   };
   var lastSent = null;
   function handleInput() {
+    updateText();
     if (main.textContent == lastSent) return;
     ws.send("U:" + main.textContent);
     lastSent = main.textContent;
-    updateText();
   }
   main.oninput = handleInput;
   main.onchange = handleInput;
+  main.onkeydown = function(event) {
+    if (event.keyCode == 13) { // Return
+      replaceSelection("\n");
+      event.preventDefault();
+    }
+  };
   return ws;
 }
