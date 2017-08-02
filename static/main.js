@@ -34,6 +34,13 @@ function receive(url, nodeID, callback) {
   return events;
 }
 
+function traverseDOM(node, callback) {
+  callback(node, "in");
+  for (var ch = node.firstChild; ch; ch = ch.nextSibling) {
+    traverseDOM(ch, callback);
+  }
+  callback(node, "out");
+}
 function replaceSelection(replacementText) {
   /* Adapted from http://stackoverflow.com/a/3997896 */
   var sel = window.getSelection();
@@ -54,6 +61,66 @@ function send(url, nodeID, callback) {
       main.focus();
       var sel = window.getSelection();
       sel.collapse(main.firstChild, newText.length);
+    } else {
+      /* Check for non-text nodes */
+      var allText = true;
+      for (var ch = main.firstChild; ch; ch = ch.nextSibling) {
+        if (ch.nodeType != Node.TEXT_NODE) {
+          // Ignore final <span>.
+          if (ch.nodeName == "SPAN" && ! ch.childNodes &&
+              ! ch.nextSibling)
+            continue;
+          allText = false;
+        }
+      }
+      /* Exterminate! */
+      if (! allText) {
+        var sel = window.getSelection();
+        var savedText = null, curText = "", softNewline = false;
+        // FIXME: Not handling focus between element nodes (an Element as
+        //        the focusAnchor).
+        traverseDOM(main, function(node, state) {
+          if (node == main) {
+            return;
+          } else if (node.nodeType == Node.TEXT_NODE) {
+            if (state == "out") {
+              /* Do not handle text nodes twice */
+              return;
+            } else if (node == sel.focusNode) {
+              /* Handle selection focus */
+              if (softNewline) curText += "\n";
+              savedText = curText + node.data.substring(0, sel.focusOffset);
+              curText = node.data.substring(sel.focusOffset);
+              softNewline = false;
+            } else {
+              if (softNewline) curText += "\n";
+              curText += node.data;
+              softNewline = false;
+            }
+          } else if (node.nodeType == Node.ELEMENT_NODE) {
+            /* Newlines for consecutive <BR>-s. */
+            if (node.nodeName == "BR" && state == "in" && softNewline)
+              curText += "\n";
+            /* Add newlines around P, DIV, BR. */
+            if (node.nodeName == "P" || node.nodeName == "BR" ||
+                node.nodeName == "DIV")
+              softNewline = true;
+          } else {
+            console.warn("Unknown node in text area:", node);
+          }
+        });
+        if (savedText == null) {
+          savedText = curText;
+          curText = "";
+        }
+        main.textContent = savedText + curText;
+        if (main.firstChild) {
+          sel.collapse(main.firstChild, savedText.length);
+        } else {
+          sel.collapse(main, 0);
+        }
+      }
+      main.appendChild(document.createElement("span"));
     }
     /* External processing */
     if (callback) callback();
