@@ -30,7 +30,7 @@ function prepare(sending) {
   m = /\/([^/]+)\/[^/]*$/.exec(location.href);
   document.title = m[1];
   if (sending) {
-     u = location.href.replace(/^http/, "ws").replace(/[^/]*$/, "ws");
+    u = location.href.replace(/^http/, "ws").replace(/[^/]*$/, "ws");
   } else {
     u = location.href.replace(/[^/]*$/, "get");
   }
