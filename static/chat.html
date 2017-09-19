@@ -6,15 +6,24 @@
     <title>SSRTT</title>
     <link rel="stylesheet" href="../../static/style.css"/>
     <script src="../../static/main.js" defer="defer"></script>
+    <script type="text/javascript">
+window.onload = function() {
+  var m = /^(.*)\/([^/]+)\/chat\/([^/]+)$/.exec(document.location.href);
+  var p = m[1].replace(/^http/, "ws");
+  document.title = m[3] + " \u2194 " + m[2];
+  receive(m[1] + "/" + m[3] + "/get/" + m[2], "output", null);
+  send(p + "/" + m[2] + "/ws/" + m[3], "input", null);
+};
+    </script>
   </head>
   <body>
     <div class="left-half main-box">
-      <aside></aside>
-      <div id="output"></div>
+      <aside id="output-msg"></aside>
+      <div class="main hl-main" id="output"></div>
     </div>
     <div class="right-half main-box">
-      <aside></aside>
-      <main id="input"></main>
+      <aside id="input-msg"></aside>
+      <main class="main hl-main" id="input"></main>
     </div>
   </body>
 </html>
