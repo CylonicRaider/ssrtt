@@ -1,4 +1,30 @@
 
+/*** Utilities ***/
+
+function replaceSelection(replacementText) {
+  /* Adapted from http://stackoverflow.com/a/3997896 */
+  var sel = window.getSelection();
+  if (sel.rangeCount) {
+    var range = sel.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(document.createTextNode(replacementText));
+    range.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+
+function messager(node) {
+  if (typeof node == "string")
+    node = document.getElementById(node);
+  return function(text, level) {
+    node.className = (level) ? "hl-" + level : "";
+    node.textContent = text;
+  }
+}
+
+/*** Main code ***/
+
 function prepare(sending) {
   var m, u;
   m = /\/([^/]+)\/[^/]*$/.exec(location.href);
@@ -13,12 +39,11 @@ function prepare(sending) {
 
 function receive(url, nodeID, callback) {
   var main = document.getElementById(nodeID);
-  var messages = document.getElementById(nodeID + "-msg");
-  messages.className = "hl-aside";
-  messages.textContent = "Connecting...";
+  var message = messager(nodeID + "-msg");
+  message("Connecting...", "aside");
   var events = new EventSource(url);
   events.onopen = function(evt) {
-    messages.textContent = "";
+    message("");
   };
   events.onmessage = function(evt) {
     var text = evt.data;
@@ -28,30 +53,9 @@ function receive(url, nodeID, callback) {
   };
   events.onerror = function(evt) {
     console.warn("SSE error", evt);
-    messages.className = "hl-error";
-    messages.textContent = "Reconnecting...";
+    message("Reconnecting...", "error");
   };
   return events;
-}
-
-function traverseDOM(node, callback) {
-  callback(node, "in");
-  for (var ch = node.firstChild; ch; ch = ch.nextSibling) {
-    traverseDOM(ch, callback);
-  }
-  callback(node, "out");
-}
-function replaceSelection(replacementText) {
-  /* Adapted from http://stackoverflow.com/a/3997896 */
-  var sel = window.getSelection();
-  if (sel.rangeCount) {
-    var range = sel.getRangeAt(0);
-    range.deleteContents();
-    range.insertNode(document.createTextNode(replacementText));
-    range.collapse(false);
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
 }
 
 function send(url, nodeID, callback) {
@@ -66,12 +70,11 @@ function send(url, nodeID, callback) {
     if (callback) callback();
   }
   var main = document.getElementById(nodeID);
-  var messages = document.getElementById(nodeID + "-msg");
-  messages.className = "hl-aside";
-  messages.textContent = "Connecting...";
+  var message = messager(nodeID + "-msg");
+  message("Connecting...", "aside");
   var ws = new WebSocket(url);
   ws.onopen = function(evt) {
-    messages.textContent = "";
+    message("");
     main.contentEditable = true;
   };
   ws.onmessage = function(evt) {
@@ -82,12 +85,10 @@ function send(url, nodeID, callback) {
   };
   ws.onerror = function(evt) {
     console.warn("WS error", evt);
-    messages.className = "hl-main";
-    messages.textContent = "";
+    message("");
   };
   ws.onclose = function(evt) {
-    messages.className = "hl-error";
-    messages.textContent = "Connection closed";
+    message("Connection closed", "error");
   };
   var lastSent = null;
   function handleInput() {
