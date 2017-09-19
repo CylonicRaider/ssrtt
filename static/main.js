@@ -14,7 +14,7 @@ function replaceSelection(replacementText) {
   }
 }
 
-function messager(node) {
+function Messager(node) {
   if (typeof node == "string")
     node = document.getElementById(node);
   return function(text, level) {
@@ -39,7 +39,7 @@ function prepare(sending) {
 
 function receive(url, nodeID, callback) {
   var main = document.getElementById(nodeID);
-  var message = messager(nodeID + "-msg");
+  var message = new Messager(nodeID + "-msg");
   message("Connecting...", "aside");
   var events = new EventSource(url);
   events.onopen = function(evt) {
@@ -70,7 +70,7 @@ function send(url, nodeID, callback) {
     if (callback) callback();
   }
   var main = document.getElementById(nodeID);
-  var message = messager(nodeID + "-msg");
+  var message = new Messager(nodeID + "-msg");
   message("Connecting...", "aside");
   var ws = new WebSocket(url);
   ws.onopen = function(evt) {
