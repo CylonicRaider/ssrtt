@@ -100,8 +100,10 @@ input[type=text] {
   margin: auto;
   min-width: 1.2em;
   min-height: 1.2em;
-  box-shadow: 0 0 0.7em #ffff80;
   outline: none;
+}
+.main-box > .main[contenteditable="true"] {
+  box-shadow: 0 0 0.7em #ffff80;
 }
 .main-box > .main:focus {
   box-shadow: none;
