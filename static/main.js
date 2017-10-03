@@ -1,6 +1,13 @@
 
 /*** Utilities ***/
 
+function $id(id) {
+  return document.getElementById(id);
+}
+function $sel(sel, node) {
+  return (node || document).querySelector(sel);
+}
+
 function replaceSelection(replacementText) {
   /* Adapted from http://stackoverflow.com/a/3997896 */
   var sel = window.getSelection();
@@ -16,12 +23,41 @@ function replaceSelection(replacementText) {
 
 function Messager(node) {
   if (typeof node == "string")
-    node = document.getElementById(node);
+    node = $id(node);
   return function(text, level) {
     node.className = (level) ? "hl-" + level : "";
     node.textContent = text;
-  }
+  };
 }
+
+function Autosizer(measure, node, sizes) {
+  var curIdx = sizes.length - 1;
+  node.style.fontSize = sizes[curIdx];
+  return function() {
+    /* Try shrinking */
+    var shrunk = false;
+    while (measure.scrollHeight > measure.clientHeight && curIdx > 0) {
+      node.style.fontSize = sizes[--curIdx];
+      shrunk = true;
+    }
+    if (shrunk) return;
+    /* Otherwise, try growing until too large, and then back off */
+    while (++curIdx < sizes.length) {
+      node.style.fontSize = sizes[curIdx];
+      if (measure.scrollHeight > measure.clientHeight) {
+        node.style.fontSize = sizes[--curIdx];
+        break;
+      }
+    }
+  };
+}
+
+/*** Data ***/
+
+var BIG_SIZES   = ["2.5vmin", "3.75vmin", "5vmin", "7.5vmin", "10vmin",
+                   "15vmin", "20vmin", "25vmin"];
+var SMALL_SIZES = ["2.5vmin", "3.75vmin", "5vmin", "7.5vmin", "10vmin",
+                   "15vmin"];
 
 /*** Main code ***/
 
@@ -38,7 +74,7 @@ function prepare(sending) {
 }
 
 function receive(url, nodeID, callback) {
-  var main = document.getElementById(nodeID);
+  var main = $id(nodeID);
   var message = new Messager(nodeID + "-msg");
   message("Connecting...", "aside");
   var events = new EventSource(url);
@@ -69,7 +105,7 @@ function send(url, nodeID, callback) {
     /* External processing */
     if (callback) callback();
   }
-  var main = document.getElementById(nodeID);
+  var main = $id(nodeID);
   var message = new Messager(nodeID + "-msg");
   message("Connecting...", "aside");
   var ws = new WebSocket(url);

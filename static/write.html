@@ -8,7 +8,8 @@
     <script src="../static/main.js" defer="defer"></script>
     <script type="text/javascript">
 window.onload = function() {
-  send(prepare(true), "main", null);
+  var as = new Autosizer(document.body, $id('main'), BIG_SIZES);
+  send(prepare(true), "main", as);
 };
     </script>
   </head>
