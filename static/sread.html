@@ -9,7 +9,11 @@
     <script type="text/javascript">
 window.onload = function() {
   var as = new Autosizer(document.body, $id('main'), SMALL_SIZES);
-  receive(prepare(false), "main", as);
+  var notifier = new Notifier();
+  receive(prepare(false), "main", function() {
+    as();
+    notifier();
+  });
 };
     </script>
   </head>

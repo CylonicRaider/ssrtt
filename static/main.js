@@ -56,6 +56,25 @@ function Autosizer(measure, node, sizes) {
   };
 }
 
+function Notifier() {
+  var visible = document.hasFocus();
+  window.onblur = function() {
+    visible = false;
+  }
+  window.onfocus = function() {
+    visible = true;
+    notify(false);
+  }
+  return function() {
+    if (! visible) notify(true);
+  };
+}
+
+function notify(status) {
+  var m = /^(.*?)( \*)*$/.exec(document.title);
+  document.title = (status) ? m[1] + " *" : m[1];
+}
+
 /*** Data ***/
 
 var BIG_SIZES   = ["2.5vmin", "3.75vmin", "5vmin", "7.5vmin", "10vmin",
