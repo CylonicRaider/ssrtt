@@ -32,8 +32,12 @@ function Messager(node) {
 
 function Autosizer(measure, node, sizes) {
   var curIdx = sizes.length - 1;
+  var oldHeight = null;
   node.style.fontSize = sizes[curIdx];
   return function() {
+    /* Avoid unnecessary updates */
+    if (node.scrollHeight == oldHeight) return;
+    oldHeight = node.scrollHeight;
     /* Try shrinking */
     var shrunk = false;
     while (measure.scrollHeight > measure.clientHeight && curIdx > 0) {
