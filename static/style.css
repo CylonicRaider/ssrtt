@@ -75,6 +75,9 @@ h1 {
 header p {
   font-style: italic;
 }
+header {
+  margin-bottom: 0.25em;
+}
 
 input[type=text] {
   margin: 0;
@@ -85,6 +88,10 @@ input[type=text] {
   background: inherit;
   color: inherit;
   transition: border 0.1s, margin 0.1s;
+}
+
+.output {
+  margin: 0.25em 0;
 }
 
 /* Read/Write pages */
