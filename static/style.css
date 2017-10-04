@@ -87,25 +87,6 @@ input[type=text] {
   transition: border 0.1s, margin 0.1s;
 }
 
-/* Animation */
-.rotate-once, .rotate {
-  -webkit-animation: rotate 10s cubic-bezier(.5, .125, .5, .875);
-  animation: rotate 10s cubic-bezier(.5, .125, .5, .875);
-}
-.rotate {
-  -webkit-animation-iteration-count: infinite;
-  animation-iteration-count: infinite;
-}
-
-@-webkit-keyframes rotate {
-  from { transform: perspective(100vw) rotateY(0deg); }
-    to { transform: perspective(100vw) rotateY(360deg); }
-}
-@keyframes rotate {
-  from { transform: perspective(100vw) rotateY(0deg); }
-    to { transform: perspective(100vw) rotateY(360deg); }
-}
-
 /* Read/Write pages */
 .main-box {
   white-space: pre-wrap;
@@ -128,4 +109,36 @@ input[type=text] {
 }
 .main-box > .main:focus {
   box-shadow: none;
+}
+
+/* Animation */
+.rotate-once, .rotate {
+  -webkit-animation: rotate 10s cubic-bezier(.5, .125, .5, .875);
+  animation: rotate 10s cubic-bezier(.5, .125, .5, .875);
+}
+.rotate {
+  -webkit-animation-iteration-count: infinite;
+  animation-iteration-count: infinite;
+}
+
+@-webkit-keyframes rotate {
+  from { transform: perspective(100vw) rotateY(0deg); }
+      to { transform: perspective(100vw) rotateY(360deg); }
+}
+@keyframes rotate {
+  from { transform: perspective(100vw) rotateY(0deg); }
+      to { transform: perspective(100vw) rotateY(360deg); }
+}
+
+/* Gimmicks */
+.row {
+  display: table-row;
+}
+.row > span {
+  display: table-cell;
+  white-space: pre-line;
+}
+.row > span:first-child {
+  text-align: right;
+  padding-right: 1ch;
 }
