@@ -87,6 +87,25 @@ input[type=text] {
   transition: border 0.1s, margin 0.1s;
 }
 
+/* Animation */
+.rotate-once, .rotate {
+  -webkit-animation: rotate 10s cubic-bezier(.5, .125, .5, .875);
+  animation: rotate 10s cubic-bezier(.5, .125, .5, .875);
+}
+.rotate {
+  -webkit-animation-iteration-count: infinite;
+  animation-iteration-count: infinite;
+}
+
+@-webkit-keyframes rotate {
+  from { transform: perspective(100vw) rotateY(0deg); }
+    to { transform: perspective(100vw) rotateY(360deg); }
+}
+@keyframes rotate {
+  from { transform: perspective(100vw) rotateY(0deg); }
+    to { transform: perspective(100vw) rotateY(360deg); }
+}
+
 /* Read/Write pages */
 .main-box {
   white-space: pre-wrap;
