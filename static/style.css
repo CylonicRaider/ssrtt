@@ -101,6 +101,8 @@ input[type=text] {
   min-width: 1.2em;
   min-height: 1.2em;
   outline: none;
+  white-space: pre-line;
+  word-wrap: break-word;
 }
 .main-box > .main[contenteditable="true"] {
   box-shadow: 0 0 0.7em #ffff80;
