@@ -130,11 +130,11 @@ input[type=text] {
 
 @-webkit-keyframes rotate {
   from { transform: perspective(100vw) rotateY(0deg); }
-      to { transform: perspective(100vw) rotateY(360deg); }
+    to { transform: perspective(100vw) rotateY(360deg); }
 }
 @keyframes rotate {
   from { transform: perspective(100vw) rotateY(0deg); }
-      to { transform: perspective(100vw) rotateY(360deg); }
+    to { transform: perspective(100vw) rotateY(360deg); }
 }
 
 /* Gimmicks */
