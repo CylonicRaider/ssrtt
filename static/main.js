@@ -75,6 +75,32 @@ function notify(status) {
   document.title = (status) ? m[1] + " *" : m[1];
 }
 
+// TODO: Allow normalizing node to a sequence of text with DIV-s or BR-s?
+function getNodeText(node) {
+  function traverse(node) {
+    if (node.nodeType == Node.ELEMENT_NODE) {
+      var localSoftNL = (node.tagName == "DIV" || node.tagName == "P");
+      softNL |= localSoftNL;
+      Array.prototype.forEach.call(node.childNodes, traverse);
+      if (node.tagName == "BR") {
+        ret += (softNL) ? "\n\n" : "\n";
+        softNL = false;
+        trimNL = true;
+      } else {
+        softNL |= localSoftNL;
+      }
+    } else if (node.nodeType == Node.TEXT_NODE) {
+      if (softNL) ret += "\n";
+      ret += node.nodeValue;
+      softNL = false;
+    }
+  }
+  var ret = "", softNL = false, trimNL = false;
+  traverse(node);
+  if (trimNL && ret.endsWith("\n")) ret = ret.substring(0, ret.length - 1);
+  return ret;
+}
+
 /*** Data ***/
 
 var BIG_SIZES   = ["2.5vmin", "3.75vmin", "5vmin", "7.5vmin", "10vmin",
@@ -139,7 +165,7 @@ function send(url, nodeID, callback) {
   ws.onmessage = function(evt) {
     var type = evt.data.slice(0, 2);
     var text = evt.data.slice(2);
-    if (type != "U:" || text == main.textContent) return;
+    if (type != "U:" || text == getNodeText(main)) return;
     updateText(text);
   };
   ws.onerror = function(evt) {
@@ -152,17 +178,12 @@ function send(url, nodeID, callback) {
   var lastSent = null;
   function handleInput() {
     updateText();
-    if (main.textContent == lastSent) return;
-    ws.send("U:" + main.textContent);
-    lastSent = main.textContent;
+    var text = getNodeText(main);
+    if (text == lastSent) return;
+    ws.send("U:" + text);
+    lastSent = text;
   }
   main.oninput = handleInput;
   main.onchange = handleInput;
-  main.onkeydown = function(event) {
-    if (event.keyCode == 13) { // Return
-      replaceSelection("\n");
-      event.preventDefault();
-    }
-  };
   return ws;
 }
