@@ -2,28 +2,23 @@
 <html>
   <head>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>SSRTT</title>
-    <link rel="stylesheet" type="text/css" href="../static/base.css"/>
-    <script type="text/javascript" src="../static/base.js"
-      defer="defer"></script>
-    <script type="text/javascript" src="../static/main.js"
-      defer="defer"></script>
-    <style type="text/css">
-main {
-  text-align: left;
-  -webkit-animation: none;
-  animation: none;
-}
-    </style>
+    <link rel="stylesheet" href="../static/style.css"/>
+    <script src="../static/main.js" defer="defer"></script>
     <script type="text/javascript">
 window.onload = function() {
-  initRead(["15vmin", "10vmin", "7.5vmin", "5vmin", "3.75vmin", "2.5vmin"]);
+  var as = new Autosizer(document.body, $id('main'), SMALL_SIZES);
+  var notifier = new Notifier();
+  receive(prepare(false), "main", function() {
+    as();
+    notifier();
+  });
 };
     </script>
   </head>
-  <body>
-    <main></main>
-    <aside></aside>
-    <footer></footer>
+  <body class="full-size main-box">
+    <aside id="main-msg"></aside>
+    <main class="main hl-main" id="main"></main>
   </body>
 </html>

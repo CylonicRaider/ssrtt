@@ -87,7 +87,7 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
     def send_404(self):
         self.send_string(404, self.NOT_FOUND)
 
-    def redirect_301(self, location):
+    def send_redirect(self, location):
         body_str = self.MOVED_PERMANENTLY % cgi.escape(location, True)
         body = body_str.encode('utf-8')
         self.send_response(301, len(body))
@@ -97,6 +97,41 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def run_read(self, code):
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/event-stream')
+        self.end_headers()
+        for i in self.get_stream(code).iter(10, True):
+            if i is None:
+                self.wfile.write(b'event: ping\n\n')
+                self.wfile.flush()
+                continue
+            ci = i.encode('utf-8')
+            ri = (b'data: ' + ci.replace(b'\n', b'\ndata: ') +
+                  b'\n\n')
+            self.wfile.write(ri)
+            self.wfile.flush()
+
+    def run_write(self, code):
+        stream = self.get_stream(code)
+        if not stream.lock():
+            self.send_string(409, b'409 Conflict\n'
+                             b'Stream is already being written')
+            return
+        try:
+            conn = self.handshake()
+            conn.write_text_frame('U:' + stream.data)
+            while 1:
+                msg = conn.read_frame()
+                if not msg: break
+                if msg.msgtype != websocket_server.OP_TEXT:
+                    continue
+                cnt = msg.content
+                if cnt.startswith('U:'):
+                    stream(cnt[2:])
+        finally:
+            stream.unlock()
+
     def do_GET(self):
         path = self.path.partition('?')[0]
         parts = re.sub('/+', '/', path.strip('/')).split('/')
@@ -104,59 +139,50 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
         try:
             if len(parts) == 1:
                 if parts[0] == '':
+                    # Landing page
                     ent = self.CACHE.get('index.html')
+                elif parts[0] == 'favicon.ico':
+                    # Favicon
+                    ent = self.CACHE.get('favicon.ico')
                 elif not path.endswith('/'):
                     # Ensure streams have a canonical URL.
-                    self.redirect_301(parts[0] + '/')
+                    self.send_redirect(parts[0] + '/')
                     return
                 else:
                     # HTML page reading the stream
                     ent = self.CACHE.get('static/index.html')
             elif len(parts) == 2:
                 code = parts[0]
-                if parts[1] == 'ws':
+                if path.endswith('/'):
+                    # No directories on this level.
+                    self.send_redirect(path.rstrip('/'))
+                    return
+                elif parts[1] == 'ws':
                     # WebSocket writing the stream
-                    stream = self.get_stream(code)
-                    if not stream.lock():
-                        self.send_string(409, b'409 Conflict\n'
-                            b'Stream is already being written')
-                        return
-                    try:
-                        conn = self.handshake()
-                        conn.write_text_frame('U:' + stream.data)
-                        while 1:
-                            msg = conn.read_frame()
-                            if not msg: break
-                            if msg.msgtype != websocket_server.OP_TEXT:
-                                continue
-                            cnt = msg.content
-                            if cnt.startswith('U:'):
-                                stream(cnt[2:])
-                    finally:
-                        stream.unlock()
+                    self.run_write(code)
                 elif parts[1] == 'get':
                     # Actual stream
-                    self.send_response(200)
-                    self.send_header('Content-Type', 'text/event-stream')
-                    self.end_headers()
-                    for i in self.get_stream(code).iter(10, True):
-                        if i is None:
-                            self.wfile.write(b'event: ping\n\n')
-                            self.wfile.flush()
-                            continue
-                        ci = i.encode('utf-8')
-                        ri = (b'data: ' + ci.replace(b'\n', b'\ndata: ') +
-                              b'\n\n')
-                        self.wfile.write(ri)
-                        self.wfile.flush()
+                    self.run_read(code)
                 elif parts[1] not in ('.', '..'):
                     # Random static files.
                     lpath = 'static/' + parts[1]
                     ent = (self.CACHE.get(lpath) or
                            self.CACHE.get(lpath + '.html'))
             elif len(parts) == 3:
-                if parts[1] == 'chat':
+                code = parts[0] + '/' + parts[2]
+                if path.endswith('/'):
+                    # No directories here, too.
+                    self.send_redirect(path.rstrip('/'))
+                    return
+                elif parts[1] == 'chat':
+                    # HTML page for the chat
                     ent = self.CACHE.get('static/chat.html')
+                elif parts[1] == 'ws':
+                    # Writing the chat stream
+                    self.run_write(code)
+                elif parts[1] == 'get':
+                    # Reading the chat stream
+                    self.run_read(code)
             if ent:
                 ent.send(self)
             else:

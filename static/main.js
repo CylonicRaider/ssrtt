@@ -1,5 +1,14 @@
 
-function replaceSelectedText(replacementText) {
+/*** Utilities ***/
+
+function $id(id) {
+  return document.getElementById(id);
+}
+function $sel(sel, node) {
+  return (node || document).querySelector(sel);
+}
+
+function replaceSelection(replacementText) {
   /* Adapted from http://stackoverflow.com/a/3997896 */
   var sel = window.getSelection();
   if (sel.rangeCount) {
@@ -11,155 +20,170 @@ function replaceSelectedText(replacementText) {
     sel.addRange(range);
   }
 }
-function bail(message) {
-  var main = document.querySelector("main");
-  main.removeAttribute("contenteditable");
-  if (message != null) {
-    main.className = "nope";
-    main.textContent = "): " + message + " :(";
-    Autosizer(main)();
+
+function Messager(node) {
+  if (typeof node == "string")
+    node = $id(node);
+  return function(text, level) {
+    node.className = (level) ? "hl-" + level : "";
+    node.textContent = text;
+  };
+}
+
+function Autosizer(measure, node, sizes) {
+  var curIdx = sizes.length - 1;
+  var oldHeight = null;
+  node.style.fontSize = sizes[curIdx];
+  return function() {
+    /* Avoid unnecessary updates */
+    if (node.scrollHeight == oldHeight) return;
+    oldHeight = node.scrollHeight;
+    /* Try shrinking */
+    var shrunk = false;
+    while (measure.scrollHeight > measure.clientHeight && curIdx > 0) {
+      node.style.fontSize = sizes[--curIdx];
+      shrunk = true;
+    }
+    if (shrunk) return;
+    /* Otherwise, try growing until too large, and then back off */
+    while (++curIdx < sizes.length) {
+      node.style.fontSize = sizes[curIdx];
+      if (measure.scrollHeight > measure.clientHeight) {
+        node.style.fontSize = sizes[--curIdx];
+        break;
+      }
+    }
+  };
+}
+
+function Notifier() {
+  var visible = document.hasFocus();
+  window.onblur = function() {
+    visible = false;
   }
+  window.onfocus = function() {
+    visible = true;
+    notify(false);
+  }
+  return function() {
+    if (! visible) notify(true);
+  };
 }
-function info(message) {
-  var aside = document.querySelector("aside");
-  aside.textContent = message;
+
+function notify(status) {
+  var m = /^(.*?)( \*)*$/.exec(document.title);
+  document.title = (status) ? m[1] + " *" : m[1];
 }
-function footer(message) {
-  var footer = document.querySelector("footer");
-  footer.textContent = message;
+
+// TODO: Allow normalizing node to a sequence of text with DIV-s or BR-s?
+function getNodeText(node) {
+  function traverse(node) {
+    if (node.nodeType == Node.ELEMENT_NODE) {
+      var localSoftNL = (node.tagName == "DIV" || node.tagName == "P");
+      softNL |= localSoftNL;
+      Array.prototype.forEach.call(node.childNodes, traverse);
+      if (node.tagName == "BR") {
+        ret += (softNL) ? "\n\n" : "\n";
+        softNL = false;
+        trimNL = true;
+      } else {
+        softNL |= localSoftNL;
+      }
+    } else if (node.nodeType == Node.TEXT_NODE) {
+      if (softNL) ret += "\n";
+      ret += node.nodeValue;
+      softNL = false;
+    }
+  }
+  var ret = "", softNL = false, trimNL = false;
+  traverse(node);
+  if (trimNL && ret.endsWith("\n")) ret = ret.substring(0, ret.length - 1);
+  return ret;
 }
-function splitURL() {
-  return /^(.*)\/([^/]+)\/([^/]*)$/.exec(location.pathname);
-}
-function initRead(sizes) {
-  var m = splitURL();
-  var stream = m && m[2], title;
-  var main = document.querySelector("main");
-  if (stream) {
-    title = decodeURI(stream);
-    document.title = title;
+
+/*** Data ***/
+
+var BIG_SIZES   = ["2.5vmin", "3.75vmin", "5vmin", "7.5vmin", "10vmin",
+                   "15vmin", "20vmin", "25vmin"];
+var SMALL_SIZES = ["2.5vmin", "3.75vmin", "5vmin", "7.5vmin", "10vmin",
+                   "15vmin"];
+
+/*** Main code ***/
+
+function prepare(sending) {
+  var m, u;
+  m = /\/([^/]+)\/[^/]*$/.exec(location.href);
+  document.title = m[1];
+  if (sending) {
+    u = location.href.replace(/^http/, "ws").replace(/[^/]*$/, "ws");
   } else {
-    return bail("Bad URL");
+    u = location.href.replace(/[^/]*$/, "get");
   }
-  var blurred = false, updated = false, overridden = false;
-  window.setBlur = function(set, isOverride) {
-    if (overridden && ! isOverride) {
-      /* NOP */
-    } else if (set) {
-      blurred = true;
-    } else {
-      blurred = false;
-      updated = false;
-      notify(false);
-    }
-    if (isOverride) overridden = true;
-  };
-  window.addEventListener("blur", function() {
-    setBlur(true);
-    if (window.parent != window && window.parent.readBlurred)
-      window.parent.readBlurred();
-  });
-  window.addEventListener("focus", function() {
-    setBlur(false);
-    if (window.parent != window && window.parent.readFocused)
-      window.parent.readFocused();
-  });
-  var source = new EventSource(m[1] + "/" + m[2] + "/get");
-  var autosize = Autosizer(main, sizes);
-  source.onmessage = function(evt) {
-    console.log("[read] UPDATE:", evt.data);
-    if (evt.data != main.textContent && blurred && ! updated) {
-      updated = true;
-      notify(true);
-    }
-    main.className = "";
-    main.textContent = evt.data;
-    info("");
-    autosize();
-  };
-  source.onerror = function() {
-    info("Reconnecting...");
-  };
-  window.addEventListener("resize", autosize);
-  autosize();
+  return u;
 }
-function initWrite(sizes) {
-  function updateFocus() {
-    if (document.activeElement == main) {
-      footer("");
-    } else {
-      footer("Click into the yellow box to type.");
+
+function receive(url, nodeID, callback) {
+  var main = $id(nodeID);
+  var message = new Messager(nodeID + "-msg");
+  message("Connecting...", "aside");
+  var events = new EventSource(url);
+  events.onopen = function(evt) {
+    message("");
+  };
+  events.onmessage = function(evt) {
+    var text = evt.data;
+    if (text == main.textContent) return;
+    main.textContent = text;
+    if (callback) callback();
+  };
+  events.onerror = function(evt) {
+    console.warn("SSE error", evt);
+    message("Reconnecting...", "error");
+  };
+  return events;
+}
+
+function send(url, nodeID, callback) {
+  function updateText(newText) {
+    if (newText != null) {
+      main.textContent = newText;
+      main.focus();
+      var sel = window.getSelection();
+      sel.collapse(main.firstChild, newText.length);
     }
+    /* External processing */
+    if (callback) callback();
   }
-  var m = splitURL();
-  var stream = m && m[2];
-  var main = document.querySelector("main");
-  if (stream) {
-    document.title = decodeURI(stream);
-  } else {
-    return bail("Bad URL");
-  }
-  window.addEventListener("blur", function() {
-    if (window.parent != window && window.parent.writeBlurred)
-      window.parent.writeBlurred();
-  });
-  window.addEventListener("focus", function() {
-    if (window.parent != window && window.parent.writeFocused)
-      window.parent.writeFocused();
-  });
-  var wsURL = location.href.replace(/^http/, "ws");
-  wsURL = wsURL.replace(/\/[^/]*$/, "/ws");
-  var ws = new WebSocket(wsURL);
-  ws.onerror = function(evt) {
-    console.error(evt);
-    bail("Connection failed");
+  var main = $id(nodeID);
+  var message = new Messager(nodeID + "-msg");
+  message("Connecting...", "aside");
+  var ws = new WebSocket(url);
+  ws.onopen = function(evt) {
+    message("");
+    main.contentEditable = true;
   };
   ws.onmessage = function(evt) {
-    if (typeof evt.data != "string") return;
-    var p = /^([A-Za-z0-9])(?::([^]*))$/.exec(evt.data);
-    var cmd = p[1], data = p[2] || "";
-    if (cmd == "U") {
-      main.textContent = data;
-      autosize();
-    }
+    var type = evt.data.slice(0, 2);
+    var text = evt.data.slice(2);
+    if (type != "U:" || text == getNodeText(main)) return;
+    updateText(text);
   };
-  ws.onclose = function() {
-    info("Connection closed");
-    bail(null);
+  ws.onerror = function(evt) {
+    console.warn("WS error", evt);
+    message("");
   };
-  var oldText = null, lastPing = Date.now();
-  setInterval(function() {
-    var text = main.textContent, now = Date.now();
-    if (text == oldText && now - lastPing < 10000 ||
-      ws.readyState != WebSocket.OPEN) return;
-    lastPing = now;
-    if (text == oldText) {
-      console.log("[write] Sending keep-alive...");
-      ws.send("P");
-      return;
-    }
-    console.log("[write] UPDATE:", text);
-    oldText = text;
+  ws.onclose = function(evt) {
+    message("Connection closed", "error");
+  };
+  var lastSent = null;
+  function handleInput() {
+    updateText();
+    var text = getNodeText(main);
+    if (text == lastSent) return;
     ws.send("U:" + text);
-  }, 250);
-  var autosize = Autosizer(main, sizes);
-  main.onkeydown = function(evt) {
-    if (evt.which == 13) { // Return
-      evt.preventDefault();
-      replaceSelectedText("\n");
-      autosize();
-    }
-  };
-  main.onblur = function() {
-    updateFocus();
-  };
-  main.onfocus = function() {
-    updateFocus();
-  };
-  main.oninput = function() {
-    autosize();
-  };
-  window.addEventListener("resize", autosize);
-  autosize();
-  updateFocus();
+    lastSent = text;
+  }
+  main.oninput = handleInput;
+  main.onchange = handleInput;
+  return ws;
 }

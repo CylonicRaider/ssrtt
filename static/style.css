@@ -1,0 +1,155 @@
+
+/* Basic */
+body {
+  background: black;
+  color: white;
+  font-family: "Times New Roman", serif;
+  font-size: 5vmin;
+}
+
+* {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+/* UI */
+.full-size, .left-half, .right-half {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+.left-half {
+  right: 50%;
+}
+.right-half {
+  left: 50%;
+}
+.center-content, .main-box {
+  display: -webkit-flex;
+  -webkit-align-items: center;
+  -webkit-justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.hl-main {
+  text-shadow: 0 0 0.7em #ffff80;
+}
+.hl-aside {
+  text-shadow: 0 0 0.7em #808080;
+}
+.hl-error {
+  text-shadow: 0 0 0.7em #ff0000;
+}
+
+/* Landing page */
+a:link {
+  color: #0080ff;
+  text-decoration: none;
+}
+a:visited {
+  color: #c000c0;
+}
+a:hover {
+  text-decoration: underline;
+}
+a:active {
+  color: #ff0000;
+}
+a[disabled] {
+  color: #808080;
+}
+a[disabled]:hover {
+  text-decoration: none;
+  cursor: inherit;
+}
+
+h1 {
+  font-size: 2em;
+}
+header p {
+  font-style: italic;
+}
+header {
+  margin-bottom: 0.25em;
+}
+
+input[type=text] {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  border-bottom: 2px solid white;
+  font: inherit;
+  background: inherit;
+  color: inherit;
+  transition: border 0.1s, margin 0.1s;
+}
+
+.output {
+  margin: 0.25em 0;
+}
+
+/* Read/Write pages */
+.main-box {
+  white-space: pre-wrap;
+}
+.main-box > aside {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.main-box > .main {
+  margin: auto;
+  min-width: 1.2em;
+  min-height: 1.2em;
+  outline: none;
+  white-space: pre-line;
+  word-wrap: break-word;
+}
+.main-box > .main[contenteditable="true"] {
+  box-shadow: 0 0 0.7em #ffff80;
+}
+.main-box > .main:focus {
+  box-shadow: none;
+}
+
+/* Animation */
+.rotate-once, .rotate {
+  -webkit-animation: rotate 10s cubic-bezier(.5, .125, .5, .875);
+  animation: rotate 10s cubic-bezier(.5, .125, .5, .875);
+}
+.rotate {
+  -webkit-animation-iteration-count: infinite;
+  animation-iteration-count: infinite;
+}
+
+@-webkit-keyframes rotate {
+  from { transform: perspective(100vw) rotateY(0deg); }
+    to { transform: perspective(100vw) rotateY(360deg); }
+}
+@keyframes rotate {
+  from { transform: perspective(100vw) rotateY(0deg); }
+    to { transform: perspective(100vw) rotateY(360deg); }
+}
+
+/* Gimmicks */
+.row {
+  display: table-row;
+}
+.row > span {
+  display: table-cell;
+  white-space: pre-line;
+}
+.row > span:first-child {
+  text-align: right;
+  padding-right: 1ch;
+}
+
+.nick.nick-xyzzy {
+  color: hsl(148deg, 50%, 42%);
+}

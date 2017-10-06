@@ -2,95 +2,83 @@
 <html>
   <head>
     <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>SSRTT</title>
-    <link rel="stylesheet" type="text/css" href="static/base.css"/>
-    <script type="text/javascript" src="static/base.js"
-      defer="defer"></script>
-    <script type="text/javascript" src="static/main.js"
-      defer="defer"></script>
-    <style type="text/css">
-main {
-  font-size: 5vh;
-  white-space: normal;
-  -webkit-animation: rotate 10s cubic-bezier(.5, .25, .5, .75);
-  animation: rotate 10s cubic-bezier(.5, .25, .5, .75);
-}
-h1 {
-  font-size: 10vh;
-  margin: 0;
-}
-h2 {
-  font-size: inherit;
-  font-weight: normal;
-  font-style: italic;
-  margin: 0;
-}
-input[type=text] {
-  margin: 0;
-  border: 0;
-  padding: 0;
-  background: none;
-  color: white;
-  border-bottom: 2px solid white;
-}
-    </style>
-    <script type="text/javascript">
+    <link rel="stylesheet" href="static/style.css"/>
+    <script type="application/javascript">
 function update() {
-  function setLink(node, href) {
-    if (href == null) {
-      node.href = "#";
-      node.setAttribute("disabled", "disabled");
+  function setLink(link, target) {
+    if (target) {
+      link.href = target;
+      link.removeAttribute("disabled");
     } else {
-      node.href = href;
-      node.removeAttribute("disabled");
+      link.href = "#";
+      link.setAttribute("disabled", "disabled");
     }
   }
-  var sid = document.getElementById("streamID");
-  var oid = document.getElementById("peerID");
-  var send = document.getElementById("send");
-  var recv = document.getElementById("subscribe");
-  var chme = document.getElementById("chatme");
-  var chth = document.getElementById("chatthem");
-  if (sid.value && ! /\//.test(sid.value)) {
-    var stream = encodeURIComponent(sid.value);
-    setLink(send, stream + "/write");
-    setLink(recv, stream);
-    if (oid.value && ! /\//.test(oid.value)) {
-      var peer = encodeURIComponent(oid.value);
-      setLink(chme, stream + "/chat/" + peer);
-      setLink(chth, peer + "/chat/" + stream);
+  var ownText = document.getElementById("own-stream").value;
+  var otherText = document.getElementById("other-stream").value;
+  var ownLink = document.getElementById("own-link");
+  var otherLink = document.getElementById("other-link");
+  if (ownText && ! /\//.test(ownText)) {
+    var ownEnc = encodeURIComponent(ownText);
+    if (otherText && ! /\//.test(otherText)) {
+      var otherEnc = encodeURIComponent(otherText);
+      setLink(ownLink, ownEnc + "/chat/" + otherEnc);
+      setLink(otherLink, otherEnc + "/chat/" + ownEnc);
+    } else if (otherText) {
+      setLink(ownLink, null);
+      setLink(otherLink, null);
     } else {
-      setLink(chme, null);
-      setLink(chth, null);
+      setLink(ownLink, ownEnc + "/write");
+      setLink(otherLink, ownEnc);
     }
   } else {
-    setLink(send, null);
-    setLink(recv, null);
-    setLink(chme, null);
-    setLink(chth, null);
+    setLink(ownLink, null);
+    setLink(otherLink, null);
   }
 }
+function validate(evt) {
+  if (evt.target.getAttribute("disabled"))
+    evt.preventDefault();
+}
+window.onload = function() {
+  var ownInput = document.getElementById("own-stream");
+  var otherInput = document.getElementById("other-stream");
+  var ownLink = document.getElementById("own-link");
+  var otherLink = document.getElementById("other-link");
+  ownInput.onchange = update;
+  ownInput.oninput = update;
+  otherInput.onchange = update;
+  otherInput.oninput = update;
+  ownLink.onclick = validate;
+  otherLink.onclick = validate;
+  update();
+};
     </script>
   </head>
-  <body>
-    <main>
-      <h1>SSRTT</h1>
-      <h2>Shiny Shared Rotating Text Thingy</h2>
-      <p class="small">Made by
-        <span style="color: hsl(148, 50%, 42%);">@Xyzzy</span> in 2016 and
-        2017</p>
-      <p>Want an own one? &rarr; <input type="text" id="streamID"
-        placeholder="Stream name here" oninput="update()"
-        onchange="update()"/></p>
-      <p>&#8618; <a href="#" disabled="disabled" id="send">Send
-        <small>(for you)</small></a> | <a href="#" id="subscribe"
-        disabled="disabled">Subscribe <small>(for others)</small></a></p>
-      <p>Chat with someone? &rarr; <input type="text" id="peerID"
-        placeholder="Other stream name here" oninput="update()"
-        onchange="update()"/></p>
-      <p>&#8618; <a href="#" disabled="disabled" id="chatme">Your side</a> |
-        <a href="#" disabled="disabled" id="chatthem">Other side</a></p>
+  <body class="full-size center-content">
+    <main class="hl-main rotate-once">
+      <header>
+        <h1>SSRTT</h1>
+        <p>Shiny Shared Rotating Text Thingy</p>
+      </header>
+      <div class="row">
+        <span>Want an own one?</span>
+        <span><input type="text" id="own-stream"
+          placeholder="Stream name"/></span>
+      </div>
+      <div class="row">
+        <span>Chat with someone?</span>
+        <span><input type="text" id="other-stream"
+          placeholder="Other stream name"/></span>
+      </div>
+      <p class="output">&rarr;
+        <a href="#" id="own-link" disabled="disabled">Your side</a> &bull;
+        <a href="#" id="other-link" disabled="disabled">Other side</a>
+      </p>
+      <footer>Made by <i class="nick nick-xyzzy">@Xyzzy</i> in 2016 &ndash;
+        2017.</footer>
     </main>
-    <aside></aside>
   </body>
 </html>
