@@ -139,7 +139,11 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
         try:
             if len(parts) == 1:
                 if parts[0] == '':
+                    # Landing page
                     ent = self.CACHE.get('index.html')
+                elif parts[0] == 'favicon.ico':
+                    # Favicon
+                    ent = self.CACHE.get('favicon.ico')
                 elif not path.endswith('/'):
                     # Ensure streams have a canonical URL.
                     self.send_redirect(parts[0] + '/')
