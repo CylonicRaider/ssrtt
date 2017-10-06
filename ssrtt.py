@@ -101,7 +101,7 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
         self.send_response(200)
         self.send_header('Content-Type', 'text/event-stream')
         self.end_headers()
-        for i in self.get_stream(code).iter(10, True):
+        for i in self.get_stream(code).iter(60, True):
             if i is None:
                 self.wfile.write(b'event: ping\n\n')
                 self.wfile.flush()
