@@ -53,6 +53,10 @@ function Autosizer(measure, node, sizes) {
         break;
       }
     }
+    /* Word wrapping hysteresis (yes, indeed) can lead to the downscaled
+     * text being still too big. Let's hope one notch suffices. */
+    if (measure.scrollHeight > measure.clientHeight && curIdx > 0)
+      node.style.fontSize = sizes[--curIdx];
   };
 }
 
