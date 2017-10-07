@@ -154,27 +154,36 @@ function send(url, nodeID, callback) {
     /* External processing */
     if (callback) callback();
   }
-  var main = $id(nodeID);
-  var message = new Messager(nodeID + "-msg");
-  message("Connecting...", "aside");
-  var ws = new WebSocket(url);
-  ws.onopen = function(evt) {
+  function handleOpen(evt) {
     message("");
     main.contentEditable = true;
-  };
-  ws.onmessage = function(evt) {
+  }
+  function handleMessage(evt) {
     var type = evt.data.slice(0, 2);
     var text = evt.data.slice(2);
     if (type != "U:" || text == getNodeText(main)) return;
     updateText(text);
-  };
-  ws.onerror = function(evt) {
+  }
+  function handleError(evt) {
     console.warn("WS error", evt);
     message("");
-  };
-  ws.onclose = function(evt) {
+  }
+  function handleClose(evt) {
     message("Connection closed", "error");
-  };
+    ws = new WebSocket(url);
+    ws.onopen = handleOpen;
+    ws.onmessage = handleMessage;
+    ws.onerror = handleError;
+    ws.onclose = handleClose;
+  }
+  var main = $id(nodeID);
+  var message = new Messager(nodeID + "-msg");
+  message("Connecting...", "aside");
+  var ws = new WebSocket(url);
+  ws.onopen = handleOpen;
+  ws.onmessage = handleMessage;
+  ws.onerror = handleError;
+  ws.onclose = handleClose;
   var lastSent = null;
   function handleInput() {
     updateText();
