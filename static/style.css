@@ -107,6 +107,7 @@ input[type=text] {
   margin: auto;
   min-width: 1.2em;
   min-height: 1.2em;
+  max-width: 80%;
   outline: none;
   white-space: pre-line;
   word-wrap: break-word;
