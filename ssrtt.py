@@ -134,15 +134,19 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
 
     def do_GET(self):
         path = self.path.partition('?')[0]
-        parts = re.sub('/+', '/', path.strip('/')).split('/')
+        parts = re.sub('^/|/$', '', path).split('/')
         ent = None
         try:
-            if len(parts) == 1:
-                if parts[0] == '':
-                    # Landing page
-                    ent = self.CACHE.get('index.html')
-                elif parts[0] == 'favicon.ico':
-                    # Favicon
+            if path == '/':
+                # Landing page
+                ent = self.CACHE.get('index.html')
+            elif '' in parts:
+                # Sanitize path
+                self.send_string(400, b'400 Bad Request')
+                return
+            elif len(parts) == 1:
+                if parts[0] == 'favicon.ico' and not path.endswith('/'):
+                    # Special case for favicon
                     ent = self.CACHE.get('favicon.ico')
                 elif not path.endswith('/'):
                     # Ensure streams have a canonical URL.
@@ -155,7 +159,7 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
                 code = parts[0]
                 if path.endswith('/'):
                     # No directories on this level.
-                    self.send_redirect(path.rstrip('/'))
+                    self.send_redirect('..')
                     return
                 elif parts[1] == 'ws':
                     # WebSocket writing the stream
@@ -172,7 +176,7 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
                 code = parts[0] + '/' + parts[2]
                 if path.endswith('/'):
                     # No directories here, too.
-                    self.send_redirect(path.rstrip('/'))
+                    self.send_redirect('..')
                     return
                 elif parts[1] == 'chat':
                     # HTML page for the chat
