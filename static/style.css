@@ -104,7 +104,8 @@ input[type=text] {
   top: 0;
   right: 0;
 }
-.main-box > .main {
+
+.main {
   margin: auto;
   min-width: 1.2em;
   min-height: 1.2em;
@@ -113,10 +114,13 @@ input[type=text] {
   white-space: pre-line;
   word-wrap: break-word;
 }
-.main-box > .main[contenteditable="true"] {
+.main[contenteditable="true"] {
   box-shadow: 0 0 0.7em #ffff80;
 }
-.main-box > .main:focus {
+.main:not(.rotate) {
+  text-align: left;
+}
+.main:focus {
   box-shadow: none;
 }
 
