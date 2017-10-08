@@ -171,8 +171,13 @@ function send(url, nodeID, callback) {
   function handleMessage(evt) {
     var type = evt.data.slice(0, 2);
     var text = evt.data.slice(2);
-    if (type != "U:" || text == getNodeText(main)) return;
-    updateText(text);
+    if (type != "U:") {
+      return;
+    } else if (lastSent != null) {
+      ws.send("U:" + lastSent);
+    } else {
+      updateText(text);
+    }
   }
   function handleError(evt) {
     console.warn("WS error", evt);

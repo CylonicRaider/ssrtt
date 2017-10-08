@@ -122,7 +122,8 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
             conn.write_text_frame('U:' + stream.data)
             while 1:
                 msg = conn.read_frame()
-                if not msg: break
+                if not msg:
+                    break
                 if msg.msgtype != websocket_server.OP_TEXT:
                     continue
                 cnt = msg.content
