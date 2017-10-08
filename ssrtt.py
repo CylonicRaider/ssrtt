@@ -164,9 +164,11 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
                 elif parts[1] == 'ws':
                     # WebSocket writing the stream
                     self.run_write(code)
+                    return
                 elif parts[1] == 'get':
                     # Actual stream
                     self.run_read(code)
+                    return
                 elif parts[1] not in ('.', '..'):
                     # Random static files.
                     lpath = 'static/' + parts[1]
@@ -184,9 +186,11 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
                 elif parts[1] == 'ws':
                     # Writing the chat stream
                     self.run_write(code)
+                    return
                 elif parts[1] == 'get':
                     # Reading the chat stream
                     self.run_read(code)
+                    return
             if ent:
                 ent.send(self)
             else:
