@@ -134,12 +134,18 @@ function receive(url, nodeID, callback) {
   events.onopen = function(evt) {
     message("");
   };
-  events.onmessage = function(evt) {
+  events.addEventListener("message", function(evt) {
     var text = evt.data;
     if (text == main.textContent) return;
     main.textContent = text;
     if (callback) callback();
-  };
+  });
+  events.addEventListener("busy", function(evt) {
+    message("");
+  });
+  events.addEventListener("hangup", function(evt) {
+    message("Sender hung up");
+  });
   events.onerror = function(evt) {
     console.warn("SSE error", evt);
     message("Reconnecting...", "error");

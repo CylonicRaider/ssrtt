@@ -29,27 +29,21 @@ class Stream:
         with self:
             self.data = data
             self.cond.notifyAll()
-    def iter(self, timeout=None, only_update=False):
-        old = None
+    def iter(self, timeout=None):
         while 1:
             with self:
-                if only_update:
-                    if self.data != old:
-                        old = self.data
-                        yield self.data
-                    else:
-                        yield None
-                else:
-                    yield self.data
+                yield (self.data, self.locked)
                 self.cond.wait(timeout)
     def lock(self):
         with self:
             if self.locked: return False
             self.locked = True
+            self.cond.notifyAll()
             return True
     def unlock(self):
         with self:
             self.locked = False
+            self.cond.notifyAll()
 
 def spawn_thread(func, *args, **kwds):
     thr = threading.Thread(target=func, args=args, kwargs=kwds)
@@ -101,16 +95,21 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
         self.send_response(200)
         self.send_header('Content-Type', 'text/event-stream')
         self.end_headers()
-        for i in self.get_stream(code).iter(60, True):
-            if i is None:
-                self.wfile.write(b'event: ping\n\n')
-                self.wfile.flush()
-                continue
-            ci = i.encode('utf-8')
-            ri = (b'data: ' + ci.replace(b'\n', b'\ndata: ') +
-                  b'\n\n')
-            self.wfile.write(ri)
+        old_data, old_locked = None, False
+        for data, locked in self.get_stream(code).iter(60):
+            if locked != old_locked:
+                # Apparently, data are required.
+                if locked:
+                    self.wfile.write(b'event: busy\ndata\n\n')
+                else:
+                    self.wfile.write(b'event: hangup\ndata\n\n')
+            if data != old_data:
+                cdata = data.encode('utf-8')
+                event = (b'data: ' + cdata.replace(b'\n', b'\ndata: ') +
+                         b'\n\n')
+                self.wfile.write(event)
             self.wfile.flush()
+            old_data, old_locked = data, locked
 
     def run_write(self, code):
         stream = self.get_stream(code)
