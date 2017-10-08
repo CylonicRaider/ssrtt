@@ -20,6 +20,7 @@ function update() {
   var otherText = document.getElementById("other-stream").value;
   var ownLink = document.getElementById("own-link");
   var otherLink = document.getElementById("other-link");
+  var sMode = document.getElementById("s-mode");
   if (ownText && ! /\//.test(ownText)) {
     var ownEnc = encodeURIComponent(ownText);
     if (otherText && ! /\//.test(otherText)) {
@@ -29,6 +30,9 @@ function update() {
     } else if (otherText) {
       setLink(ownLink, null);
       setLink(otherLink, null);
+    } else if (sMode.checked) {
+      setLink(ownLink, ownEnc + "/swrite");
+      setLink(otherLink, ownEnc + "/sread");
     } else {
       setLink(ownLink, ownEnc + "/write");
       setLink(otherLink, ownEnc);
@@ -47,10 +51,12 @@ window.onload = function() {
   var otherInput = document.getElementById("other-stream");
   var ownLink = document.getElementById("own-link");
   var otherLink = document.getElementById("other-link");
+  var sMode = document.getElementById("s-mode");
   ownInput.onchange = update;
   ownInput.oninput = update;
   otherInput.onchange = update;
   otherInput.oninput = update;
+  sMode.onclick = update;
   ownLink.onclick = validate;
   otherLink.onclick = validate;
   update();
@@ -72,6 +78,12 @@ window.onload = function() {
         <span>Chat with someone?</span>
         <span><input type="text" id="other-stream"
           placeholder="Other stream name"/></span>
+      </div>
+      <div class="row">
+        <span>Anti-nausea?</span>
+        <span><input type="checkbox" class="toggle" id="s-mode"/><label
+          for="s-mode"><span class="on">On</span> <span
+          class="off">Off</span></label></span>
       </div>
       <p class="output">&rarr;
         <a href="#" id="own-link" disabled="disabled">Your side</a> &bull;
