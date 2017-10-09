@@ -13,7 +13,8 @@ window.onload = function() {
   var notifier = new Notifier();
   var m = /^(.*)\/([^/]+)\/chat\/([^/]+)$/.exec(document.location.href);
   var p = m[1].replace(/^http/, "ws");
-  document.title = m[3] + " \u2194 " + m[2];
+  document.title = decodeURIComponent(m[3]) + " \u2194 " +
+    decodeURIComponent(m[2]);
   receive(m[1] + "/" + m[3] + "/get/" + m[2], "output", function() {
     asO();
     notifier();

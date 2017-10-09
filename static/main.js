@@ -117,7 +117,7 @@ var SMALL_SIZES = ["2.5vmin", "3.75vmin", "5vmin", "7.5vmin", "10vmin",
 function prepare(sending) {
   var m, u;
   m = /\/([^/]+)\/[^/]*$/.exec(location.href);
-  document.title = m[1];
+  document.title = decodeURIComponent(m[1]);
   if (sending) {
     u = location.href.replace(/^http/, "ws").replace(/[^/]*$/, "ws");
   } else {
