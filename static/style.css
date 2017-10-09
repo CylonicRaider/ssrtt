@@ -131,6 +131,10 @@ input[type=checkbox]:not(:checked) ~ .if-checked {
   box-shadow: none;
 }
 
+.output a[disabled] {
+  text-shadow: none;
+}
+
 /* Animation */
 .rotate-once, .rotate {
   -webkit-animation: rotate 10s cubic-bezier(.5, .125, .5, .875);
