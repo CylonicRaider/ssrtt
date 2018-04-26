@@ -51,12 +51,10 @@ def spawn_thread(func, *args, **kwds):
     thr.start()
     return thr
 
-class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
+class SSRTTRequestHandler(
+        websocket_server.quick.RoutingWebSocketRequestHandler):
 
-    FORBIDDEN = b'403 Forbidden'
-    NOT_FOUND = b'404 Not Found'
-    MOVED_PERMANENTLY = '<html><a href="%s">Continue here</a></html>'
-    CACHE = websocket_server.quick.FileCache(THIS_DIR)
+    CACHE = websocket_server.httpserver.FileCache(THIS_DIR, append_html=True)
     STREAMS = weakref.WeakValueDictionary()
     LOCK = threading.RLock()
 
@@ -69,27 +67,6 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
                 ret = Stream(code, data)
                 cls.STREAMS[code] = ret
             return ret
-
-    def send_string(self, code, s):
-        self.send_response(code, len(s))
-        self.send_header('Content-Type', 'text/plain; charset=utf-8')
-        self.send_header('Content-Length', len(s))
-        self.end_headers()
-        self.wfile.write(s)
-    def send_403(self):
-        self.send_string(403, self.FORBIDDEN)
-    def send_404(self):
-        self.send_string(404, self.NOT_FOUND)
-
-    def send_redirect(self, location):
-        body_str = self.MOVED_PERMANENTLY % cgi.escape(location, True)
-        body = body_str.encode('utf-8')
-        self.send_response(301, len(body))
-        self.send_header('Location', location)
-        self.send_header('Content-Type', 'text/html; charset=utf-8')
-        self.send_header('Content-Length', len(body))
-        self.end_headers()
-        self.wfile.write(body)
 
     def run_read(self, code):
         self.send_response(200)
@@ -114,8 +91,7 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
     def run_write(self, code):
         stream = self.get_stream(code)
         if not stream.lock():
-            self.send_string(409, b'409 Conflict\n'
-                             b'Stream is already being written')
+            self.send_code(409, 'Stream is already being written')
             return
         try:
             conn = self.handshake()
@@ -135,31 +111,31 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
     def do_GET(self):
         path = self.path.partition('?')[0]
         parts = re.sub('^/|/$', '', path).split('/')
-        ent = None
+        static = None
         try:
             if path == '/':
                 # Landing page
-                ent = self.CACHE.get('index.html')
+                static = 'index.html'
             elif '' in parts:
                 # Sanitize path
-                self.send_string(400, b'400 Bad Request')
+                self.send_400()
                 return
             elif len(parts) == 1:
                 if parts[0] == 'favicon.ico' and not path.endswith('/'):
                     # Special case for favicon
-                    ent = self.CACHE.get('favicon.ico')
+                    static = 'favicon.ico'
                 elif not path.endswith('/'):
-                    # Ensure streams have a canonical URL.
-                    self.send_redirect(parts[0] + '/')
+                    # Ensure streams have a canonical URL
+                    self.send_redirect(301, parts[0] + '/')
                     return
                 else:
                     # HTML page reading the stream
-                    ent = self.CACHE.get('static/index.html')
+                    static = 'static/index.html'
             elif len(parts) == 2:
                 code = parts[0]
                 if path.endswith('/'):
-                    # No directories on this level.
-                    self.send_redirect('..')
+                    # No directories on this level
+                    self.send_redirect(301, '..')
                     return
                 elif parts[1] == 'ws':
                     # WebSocket writing the stream
@@ -170,19 +146,17 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
                     self.run_read(code)
                     return
                 elif parts[1] not in ('.', '..'):
-                    # Random static files.
-                    lpath = 'static/' + parts[1]
-                    ent = (self.CACHE.get(lpath) or
-                           self.CACHE.get(lpath + '.html'))
+                    # Random static files
+                    static = 'static/' + parts[1]
             elif len(parts) == 3:
                 code = parts[0] + '/' + parts[2]
                 if path.endswith('/'):
-                    # No directories here, too.
-                    self.send_redirect('..')
+                    # No directories here, too
+                    self.send_redirect(301, '..')
                     return
                 elif parts[1] == 'chat':
                     # HTML page for the chat
-                    ent = self.CACHE.get('static/chat.html')
+                    static = 'static/chat.html'
                 elif parts[1] == 'ws':
                     # Writing the chat stream
                     self.run_write(code)
@@ -191,9 +165,10 @@ class SSRTTRequestHandler(websocket_server.WebSocketRequestHandler):
                     # Reading the chat stream
                     self.run_read(code)
                     return
-            if ent:
-                ent.send(self)
-            else:
+            if static:
+                if not self.CACHE.send(self, static):
+                    static = None
+            if not static:
                 self.send_404()
         except IOError:
             pass
