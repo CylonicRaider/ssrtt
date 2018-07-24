@@ -165,11 +165,7 @@ class SSRTTRequestHandler(
                     # Reading the chat stream
                     self.run_read(code)
                     return
-            if static:
-                if not self.CACHE.send(self, static):
-                    static = None
-            if not static:
-                self.send_404()
+            self.send_cache(static and self.CACHE.get(static))
         except IOError:
             pass
 
