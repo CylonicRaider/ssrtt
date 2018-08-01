@@ -54,7 +54,7 @@ def spawn_thread(func, *args, **kwds):
 class SSRTTRequestHandler(
         websocket_server.quick.RoutingWebSocketRequestHandler):
 
-    CACHE = websocket_server.httpserver.FileCache(THIS_DIR, append_html=True)
+    CACHE = websocket_server.httpserver.FileCache(THIS_DIR)
     STREAMS = weakref.WeakValueDictionary()
     LOCK = threading.RLock()
 
@@ -135,7 +135,7 @@ class SSRTTRequestHandler(
                 code = parts[0]
                 if path.endswith('/'):
                     # No directories on this level
-                    self.send_redirect(301, '..')
+                    self.send_redirect(301, '../' + parts[-1])
                     return
                 elif parts[1] == 'ws':
                     # WebSocket writing the stream
@@ -147,12 +147,15 @@ class SSRTTRequestHandler(
                     return
                 elif parts[1] not in ('.', '..'):
                     # Random static files
-                    static = 'static/' + parts[1]
+                    if '.' in parts[1]:
+                        static = 'static/' + parts[1]
+                    else:
+                        static = 'static/' + parts[1] + '.html'
             elif len(parts) == 3:
                 code = parts[0] + '/' + parts[2]
                 if path.endswith('/'):
                     # No directories here, too
-                    self.send_redirect(301, '..')
+                    self.send_redirect(301, '../' + parts[-1])
                     return
                 elif parts[1] == 'chat':
                     # HTML page for the chat
