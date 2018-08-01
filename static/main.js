@@ -84,7 +84,10 @@ function getNodeText(node) {
   function traverse(node) {
     if (node.nodeType == Node.ELEMENT_NODE) {
       var localSoftNL = (node.tagName == "DIV" || node.tagName == "P");
-      softNL |= localSoftNL;
+      if (localSoftNL) {
+        if (! firstNL) softNL = true;
+        firstNL = false;
+      }
       Array.prototype.forEach.call(node.childNodes, traverse);
       if (node.tagName == "BR") {
         ret += (softNL) ? "\n\n" : "\n";
@@ -95,11 +98,12 @@ function getNodeText(node) {
       }
     } else if (node.nodeType == Node.TEXT_NODE) {
       if (softNL) ret += "\n";
-      ret += node.nodeValue;
       softNL = false;
+      firstNL = false;
+      ret += node.nodeValue;
     }
   }
-  var ret = "", softNL = false, trimNL = false;
+  var ret = "", firstNL = true, softNL = false, trimNL = false;
   traverse(node);
   if (trimNL && ret.endsWith("\n")) ret = ret.substring(0, ret.length - 1);
   return ret;
