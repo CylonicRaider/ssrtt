@@ -83,29 +83,23 @@ function notify(status) {
 function getNodeText(node) {
   function traverse(node) {
     if (node.nodeType == Node.ELEMENT_NODE) {
-      var localSoftNL = (node.tagName == "DIV" || node.tagName == "P");
-      if (localSoftNL) {
-        if (! firstNL) softNL = true;
-        firstNL = false;
-      }
+      var isLFNode = (node.tagName == "DIV" || node.tagName == "P" ||
+                      node.tagName == "BR");
+      if (isLFNode) addLF = true;
       Array.prototype.forEach.call(node.childNodes, traverse);
-      if (node.tagName == "BR") {
-        ret += (softNL) ? "\n\n" : "\n";
-        softNL = false;
-        trimNL = true;
-      } else {
-        softNL |= localSoftNL;
-      }
+      if (isLFNode) addLF = true;
+      if (node.tagName == "BR") addText("");
     } else if (node.nodeType == Node.TEXT_NODE) {
-      if (softNL) ret += "\n";
-      softNL = false;
-      firstNL = false;
-      ret += node.nodeValue;
+      addText(node.nodeValue);
     }
   }
-  var ret = "", firstNL = true, softNL = false, trimNL = false;
+  function addText(text) {
+    if (addLF && ret) ret += "\n";
+    addLF = false;
+    ret += text;
+  }
+  var ret = "", addLF = false;
   traverse(node);
-  if (trimNL && ret.endsWith("\n")) ret = ret.substring(0, ret.length - 1);
   return ret;
 }
 
