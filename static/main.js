@@ -133,16 +133,30 @@ function receive(url, nodeID, callback) {
     message("");
   };
   events.addEventListener("message", function(evt) {
-    var text = evt.data;
-    if (text == main.textContent) return;
-    main.textContent = text;
-    if (callback) callback();
-  });
-  events.addEventListener("busy", function(evt) {
-    message("");
-  });
-  events.addEventListener("hangup", function(evt) {
-    message("Sender hung up");
+    var type = evt.data.slice(0, 2), text = evt.data.slice(2);
+    switch (type) {
+      case "t:":
+        if (text == main.textContent) return;
+        main.textContent = text;
+        if (callback) callback();
+        break;
+      case "s:":
+        switch (text) {
+          case "active":
+            message("");
+            break;
+          case "hangup":
+            message("Sender hung up");
+            break;
+          default:
+            console.warn("Unrecognized sender status:", text);
+            break;
+        }
+        break;
+      default:
+        console.warn("Unrecognized SSE message:", evt.data);
+        break;
+    }
   });
   events.onerror = function(evt) {
     console.warn("SSE error", evt);
@@ -167,12 +181,12 @@ function send(url, nodeID, callback) {
     main.contentEditable = true;
   }
   function handleMessage(evt) {
-    var type = evt.data.slice(0, 2);
-    var text = evt.data.slice(2);
-    if (type != "U:") {
+    var type = evt.data.slice(0, 2), text = evt.data.slice(2);
+    if (type != "t:") {
+      console.warn("Unrecognized WebSocket message:", evt.data);
       return;
     } else if (lastSent != null) {
-      ws.send("U:" + lastSent);
+      ws.send("T:" + lastSent);
     } else {
       updateText(text);
     }
@@ -202,7 +216,7 @@ function send(url, nodeID, callback) {
     updateText();
     var text = getNodeText(main);
     if (text == lastSent) return;
-    ws.send("U:" + text);
+    ws.send("T:" + text);
     lastSent = text;
   }
   main.oninput = handleInput;

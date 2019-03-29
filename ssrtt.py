@@ -75,14 +75,13 @@ class SSRTTRequestHandler(
         old_data, old_locked = None, False
         for data, locked in self.get_stream(code).iter(60):
             if locked != old_locked:
-                # Apparently, data are required.
                 if locked:
-                    self.wfile.write(b'event: busy\ndata\n\n')
+                    self.wfile.write(b'data: s:active\n\n')
                 else:
-                    self.wfile.write(b'event: hangup\ndata\n\n')
+                    self.wfile.write(b'data: s:hangup\n\n')
             if data != old_data:
                 cdata = data.encode('utf-8')
-                event = (b'data: ' + cdata.replace(b'\n', b'\ndata: ') +
+                event = (b'data: t:' + cdata.replace(b'\n', b'\ndata: ') +
                          b'\n\n')
                 self.wfile.write(event)
             self.wfile.flush()
@@ -95,7 +94,7 @@ class SSRTTRequestHandler(
             return
         try:
             conn = self.handshake()
-            conn.write_text_frame('U:' + stream.data)
+            conn.write_text_frame('t:' + stream.data)
             while 1:
                 msg = conn.read_frame()
                 if not msg:
@@ -103,7 +102,7 @@ class SSRTTRequestHandler(
                 if msg.msgtype != websocket_server.OP_TEXT:
                     continue
                 cnt = msg.content
-                if cnt.startswith('U:'):
+                if cnt.startswith('T:'):
                     stream(cnt[2:])
         finally:
             stream.unlock()
