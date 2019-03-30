@@ -23,12 +23,9 @@ class Stream:
     def __exit__(self, *args):
         return self.cond.__exit__(*args)
     def __iter__(self):
-        for i in self.iter():
-            yield i
+        return iter(self.iter())
     def __call__(self, data):
-        with self:
-            self.data = data
-            self.cond.notifyAll()
+        self.post(data)
     def iter(self, timeout=None):
         while 1:
             with self:
@@ -43,6 +40,10 @@ class Stream:
     def unlock(self):
         with self:
             self.locked = False
+            self.cond.notifyAll()
+    def post(self, data):
+        with self:
+            self.data = data
             self.cond.notifyAll()
 
 def spawn_thread(func, *args, **kwds):
