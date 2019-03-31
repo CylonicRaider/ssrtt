@@ -17,6 +17,13 @@ function Messager(node) {
   };
 }
 
+Messager.forNode = function(node) {
+  if (! node) return function(text, label) {};
+  var messagerID = node.getAttribute("data-messager");
+  if (messagerID == null) messagerID = node.id + "-msg";
+  return new this(messagerID);
+};
+
 function Autosizer(measure, node, sizes) {
   var curIdx = sizes.length - 1;
   var oldHeight = null;
@@ -159,32 +166,78 @@ function connect(url, label, callback) {
   return doConnect();
 }
 
-function receive(url, nodeID, callback) {
-  var main = $id(nodeID);
-  var message = new Messager(nodeID + "-msg");
-  var desc = (/^wss?:/.test(url)) ? "Receiving WebSocket" : "SSE";
-  connect(url, desc, function(code, evt, type, text) {
+function runDisplay(url, readNode, writeNode, callback) {
+  function bothMessage(text, level) {
+    readMessage(text, level);
+    writeMessage(text, level);
+  }
+  function updateReadText(text) {
+    if (text == readNode.textContent) return;
+    readNode.textContent = text;
+    if (callback) callback("read");
+  }
+  function updateWriteText(newText) {
+    if (newText != null) {
+      writeNode.textContent = newText;
+      writeNode.focus();
+      var sel = window.getSelection();
+      sel.collapse(writeNode.firstChild, newText.length);
+    }
+    /* External processing */
+    if (callback) callback("write");
+  }
+  function handleWriteInput() {
+    updateWriteText();
+    var text = getNodeText(writeNode);
+    if (text == lastSent || ! ws) return;
+    ws.send("T:" + text);
+    lastSent = text;
+  }
+  if (typeof readNode == "string") readNode = $id(readNode);
+  if (typeof writeNode == "string") writeNode = $id(writeNode);
+  var readMessage = Messager.forNode(readNode);
+  var writeMessage = Messager.forNode(writeNode);
+  var isWS = /^wss?:/.test(url);
+  var label = (isWS) ? "WebSocket" : "SSE stream";
+  var ws, lastSent;
+  if (writeNode) {
+    writeNode.oninput = handleWriteInput;
+    writeNode.onchange = handleWriteInput;
+  }
+  connect(url, label, function(code, evt, type, text) {
     switch (code) {
       case "init":
-        message("Connecting...", "aside");
+        bothMessage("Connecting...", "aside");
+        break;
+      case "connect":
+        if (isWS) ws = this;
         break;
       case "open":
-        message("");
+        bothMessage("");
+        if (writeNode) writeNode.contentEditable = true;
         break;
       case "message":
         switch (type) {
+          case "e":
+            if (! writeNode) {
+              /* NOP */
+            } else if (lastSent != null) {
+              if (ws) ws.send("T:" + lastSent);
+            } else {
+              updateWriteText(text);
+            }
+            break;
           case "t":
-            if (text == main.textContent) return;
-            main.textContent = text;
-            if (callback) callback();
+            if (! readNode) break;
+            updateReadText(text);
             break;
           case "s":
             switch (text) {
               case "active":
-                message("");
+                readMessage("");
                 break;
               case "hangup":
-                message("Sender hung up");
+                readMessage("Sender hung up");
                 break;
               default:
                 console.warn("Unrecognized sender status:", text);
@@ -192,71 +245,26 @@ function receive(url, nodeID, callback) {
             }
             break;
           default:
-            console.warn(desc + ": Unrecognized message:", evt.data);
+            console.warn(label + ": Unrecognized message:", evt.data);
             break;
         }
         break;
       case "error":
       case "close":
-        message("Reconnecting...", "error");
+        if (isWS) {
+          bothMessage("Connection closed", "error");
+        } else {
+          bothMessage("Reconnecting...", "error");
+        }
         break;
     }
   });
 }
 
+function receive(url, nodeID, callback) {
+  runDisplay(url, nodeID, null, callback);
+}
+
 function send(url, nodeID, callback) {
-  function updateText(newText) {
-    if (newText != null) {
-      main.textContent = newText;
-      main.focus();
-      var sel = window.getSelection();
-      sel.collapse(main.firstChild, newText.length);
-    }
-    /* External processing */
-    if (callback) callback();
-  }
-  function handleInput() {
-    updateText();
-    var text = getNodeText(main);
-    if (text == lastSent || ! ws) return;
-    ws.send("T:" + text);
-    lastSent = text;
-  }
-  var main = $id(nodeID);
-  var message = new Messager(nodeID + "-msg");
-  var lastSent = null;
-  var ws = null;
-  main.oninput = handleInput;
-  main.onchange = handleInput;
-  connect(url, "WebSocket", function(code, evt, type, text) {
-    switch (code) {
-      case "init":
-        message("Connecting...", "aside");
-        break;
-      case "connect":
-        ws = this;
-        break;
-      case "open":
-        message("");
-        main.contentEditable = true;
-        break;
-      case "message":
-        switch (type) {
-          case "e":
-            if (lastSent != null) {
-              this.send("T:" + lastSent);
-            } else {
-              updateText(text);
-            }
-            break;
-          default:
-            console.warn("Unrecognized WebSocket message:", evt.data);
-            break;
-        }
-        break;
-      case "close":
-        message("Connection closed", "error");
-        break;
-    }
-  });
+  runDisplay(url, null, nodeID, callback);
 }
