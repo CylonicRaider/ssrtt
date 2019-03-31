@@ -8,8 +8,8 @@
     <script src="../../static/main.js" defer="defer"></script>
     <script type="text/javascript">
 window.onload = function() {
-  var asO = new Autosizer($sel(".left-half"), $id("output"), SMALL_SIZES);
-  var asI = new Autosizer($sel(".right-half"), $id("input"), SMALL_SIZES);
+  var asO = new Autosizer($sel(".left-half"), $id("output"), SIZES);
+  var asI = new Autosizer($sel(".right-half"), $id("input"), SIZES);
   var notifier = new Notifier();
   var m = /^(.*)\/([^/]+)\/chat\/([^/]+)$/.exec(document.location.href);
   var p = m[1].replace(/^http/, "ws");

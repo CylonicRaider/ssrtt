@@ -8,7 +8,7 @@
     <script src="../static/main.js" defer="defer"></script>
     <script type="text/javascript">
 window.onload = function() {
-  var as = new Autosizer(document.body, $id('main'), BIG_SIZES);
+  var as = new Autosizer(document.body, $id('main'), SIZES);
   var notifier = new Notifier();
   receive(prepare(false), "main", function() {
     as();
@@ -19,6 +19,6 @@ window.onload = function() {
   </head>
   <body class="full-size main-box">
     <aside id="main-msg"></aside>
-    <main class="main hl-main rotate" id="main"></main>
+    <main class="main hl-main" id="main"></main>
   </body>
 </html>

@@ -8,13 +8,13 @@
     <script src="../static/main.js" defer="defer"></script>
     <script type="text/javascript">
 window.onload = function() {
-  var as = new Autosizer(document.body, $id('main'), BIG_SIZES);
+  var as = new Autosizer(document.body, $id('main'), SIZES);
   send(prepare(true), "main", as);
 };
     </script>
   </head>
   <body class="full-size main-box">
     <aside id="main-msg"></aside>
-    <main class="main hl-main rotate" id="main"></main>
+    <main class="main hl-main" id="main"></main>
   </body>
 </html>

@@ -137,7 +137,8 @@ class SSRTTRequestHandler(
             stream.unlock()
 
     def do_GET(self):
-        path = self.path.partition('?')[0]
+        path, sep, query = self.path.partition('?')
+        query = sep + query
         parts = re.sub('^/|/$', '', path).split('/')
         static = None
         try:
@@ -154,7 +155,7 @@ class SSRTTRequestHandler(
                     static = 'favicon.ico'
                 elif not path.endswith('/'):
                     # Ensure streams have a canonical URL
-                    self.send_redirect(301, parts[0] + '/')
+                    self.send_redirect(301, parts[0] + '/' + query)
                     return
                 else:
                     # HTML page reading the stream
@@ -163,7 +164,7 @@ class SSRTTRequestHandler(
                 code = parts[0]
                 if path.endswith('/'):
                     # No directories on this level
-                    self.send_redirect(301, '../' + parts[-1])
+                    self.send_redirect(301, '../' + parts[-1] + query)
                     return
                 elif parts[1] == 'ws':
                     # WebSocket writing the stream
@@ -184,7 +185,7 @@ class SSRTTRequestHandler(
                 flipcode = parts[2] + '/' + parts[0]
                 if path.endswith('/'):
                     # No directories here, too
-                    self.send_redirect(301, '../' + parts[-1])
+                    self.send_redirect(301, '../' + parts[-1] + query)
                     return
                 elif parts[1] == 'chat':
                     # HTML page for the chat

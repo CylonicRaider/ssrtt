@@ -8,6 +8,26 @@ function $sel(sel, node) {
   return (node || document).querySelector(sel);
 }
 
+function $query(input) {
+  if (input == null) input = location.search.replace(/^\?/, "");
+  var regex = /&?([^&=]+)(?:=([^&]*))?(?=&|$)|($)/g, ret = {};
+  for (;;) {
+    var m = regex.exec(input);
+    if (! m) return null;
+    if (m[3] != null) break;
+    var n = decodeURIComponent(m[1]);
+    var v = (m[2] == null) ? true : decodeURIComponent(m[2]);
+    if (ret[n] == null) {
+      ret[n] = v;
+    } else if (typeof ret[n] == "object") {
+      ret[n].push(v);
+    } else {
+      ret[n] = [ret[n], v];
+    }
+  }
+  return ret;
+}
+
 function Messager(node) {
   if (typeof node == "string")
     node = $id(node);
@@ -99,17 +119,16 @@ function getNodeText(node) {
 
 /*** Data ***/
 
-var BIG_SIZES   = ["2.5vmin", "3.75vmin", "5vmin", "7.5vmin", "10vmin",
-                   "15vmin", "20vmin", "25vmin"];
-var SMALL_SIZES = ["2.5vmin", "3.75vmin", "5vmin", "7.5vmin", "10vmin",
-                   "15vmin"];
+var SIZES = ["2.5vmin", "3.75vmin", "5vmin", "7.5vmin", "10vmin", "15vmin",
+             "20vmin", "25vmin"];
 
 /*** Main code ***/
 
 function prepare(sending) {
-  var m, url;
-  m = /\/([^/]+)\/[^/]*$/.exec(location.href);
+  var m = /\/([^/]+)\/[^/]*$/.exec(location.href);
   document.title = decodeURIComponent(m[1]);
+  if ($query().disco) $id("main").className += " rotate";
+  var url;
   if (sending) {
     url = location.href.replace(/^http/, "ws").replace(/[^/]*$/, "ws");
   } else {

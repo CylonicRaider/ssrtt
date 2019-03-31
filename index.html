@@ -20,7 +20,7 @@ function update() {
   var otherText = document.getElementById("other-stream").value;
   var ownLink = document.getElementById("own-link");
   var otherLink = document.getElementById("other-link");
-  var sMode = document.getElementById("s-mode");
+  var dMode = document.getElementById("d-mode");
   if (ownText && ! /\//.test(ownText)) {
     var ownEnc = encodeURIComponent(ownText);
     if (otherText && ! /\//.test(otherText)) {
@@ -30,12 +30,12 @@ function update() {
     } else if (otherText) {
       setLink(ownLink, null);
       setLink(otherLink, null);
-    } else if (sMode.checked) {
-      setLink(ownLink, ownEnc + "/swrite");
-      setLink(otherLink, ownEnc + "/sread");
+    } else if (dMode.checked) {
+      setLink(ownLink, ownEnc + "/write?disco=true");
+      setLink(otherLink, ownEnc + "/?disco=true");
     } else {
       setLink(ownLink, ownEnc + "/write");
-      setLink(otherLink, ownEnc);
+      setLink(otherLink, ownEnc + "/");
     }
   } else {
     setLink(ownLink, null);
@@ -51,12 +51,12 @@ window.onload = function() {
   var otherInput = document.getElementById("other-stream");
   var ownLink = document.getElementById("own-link");
   var otherLink = document.getElementById("other-link");
-  var sMode = document.getElementById("s-mode");
+  var dMode = document.getElementById("d-mode");
   ownInput.onchange = update;
   ownInput.oninput = update;
   otherInput.onchange = update;
   otherInput.oninput = update;
-  sMode.onclick = update;
+  dMode.onclick = update;
   ownLink.onclick = validate;
   otherLink.onclick = validate;
   update();
@@ -64,7 +64,7 @@ window.onload = function() {
     </script>
   </head>
   <body class="full-size center-content">
-    <main class="hl-main rotate-once">
+    <main class="hl-main">
       <header>
         <h1>SSRTT</h1>
         <p>Shiny Shared Rotating Text Thingy</p>
@@ -80,8 +80,8 @@ window.onload = function() {
           placeholder="Other stream name"/></span>
       </div>
       <div class="row">
-        <span>Anti-nausea?</span>
-        <span><label><input type="checkbox" id="s-mode"/>
+        <span>Disco mode?</span>
+        <span><label><input type="checkbox" id="d-mode"/>
           enable<span class="if-checked">d</span></label></span>
       </div>
       <p class="output">&rarr;
