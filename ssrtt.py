@@ -95,7 +95,7 @@ class SSRTTRequestHandler(
             return
         try:
             conn = self.handshake()
-            conn.write_text_frame('t:' + stream.data)
+            conn.write_text_frame('e:' + stream.data)
             while 1:
                 msg = conn.read_frame()
                 if not msg:

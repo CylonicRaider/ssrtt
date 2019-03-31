@@ -242,7 +242,7 @@ function send(url, nodeID, callback) {
         break;
       case "message":
         switch (type) {
-          case "t":
+          case "e":
             if (lastSent != null) {
               this.send("T:" + lastSent);
             } else {
