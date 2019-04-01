@@ -8,13 +8,19 @@
     <script src="../../static/main.js" defer="defer"></script>
     <script type="text/javascript">
 window.onload = function() {
-  var asO = new Autosizer($sel(".left-half"), $id("output"), SIZES);
-  var asI = new Autosizer($sel(".right-half"), $id("input"), SIZES);
+  var asO = new Autosizer($id("output-box"), $id("output"), SIZES);
+  var asI = new Autosizer($id("input-box"), $id("input"), SIZES);
+  window.onresize = function() {
+    asO();
+    asI();
+  };
   var notifier = new Notifier();
   var m = /^(.*)\/([^/]+)\/chat\/([^/]+)$/.exec(document.location.href);
+  var inName = decodeURIComponent(m[3]), outName = decodeURIComponent(m[2]);
+  $id("output-name").textContent = outName;
+  $id("input-name").textContent = inName;
+  document.title = inName + " \u2194 " + outName;
   var p = m[1].replace(/^http/, "ws");
-  document.title = decodeURIComponent(m[3]) + " \u2194 " +
-    decodeURIComponent(m[2]);
   runDisplay(p + "/" + m[2] + "/ws/" + m[3], "output", "input", function(e) {
     switch (e) {
       case "read":
@@ -29,14 +35,27 @@ window.onload = function() {
 };
     </script>
   </head>
-  <body>
-    <div class="left-half main-box">
-      <aside id="output-msg"></aside>
-      <div class="main hl-main" id="output"></div>
-    </div>
-    <div class="right-half main-box">
-      <aside id="input-msg"></aside>
-      <main class="main hl-main" id="input"></main>
-    </div>
+  <body class="full-size horiz-box same-box">
+    <section class="same-size vert-box">
+      <div class="horiz-box">
+        <h2 id="output-name"></h2>
+        <span class="glue"></span>
+        <aside id="output-msg"></aside>
+      </div>
+      <div class="main-box" id="output-box">
+        <div class="main hl-main" id="output"></div>
+      </div>
+    </section>
+    <hr class="vline"/>
+    <section class="same-size vert-box">
+      <div class="horiz-box">
+        <h2 id="input-name"></h2>
+        <span class="glue"></span>
+        <aside id="input-msg"></aside>
+      </div>
+      <div class="main-box" id="input-box">
+        <main class="main hl-main" id="input"></main>
+      </div>
+    </section>
   </body>
 </html>

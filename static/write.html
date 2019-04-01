@@ -9,12 +9,19 @@
     <script type="text/javascript">
 window.onload = function() {
   var as = new Autosizer(document.body, $id('main'), SIZES);
+  window.onresize = as;
   send(prepare(true), "main", as);
 };
     </script>
   </head>
-  <body class="full-size main-box">
-    <aside id="main-msg"></aside>
-    <main class="main hl-main" id="main"></main>
+  <body class="full-size vert-box">
+    <div class="horiz-box">
+      <h2 id="main-name"></h2>
+      <span class="glue"></span>
+      <aside id="main-msg"></aside>
+    </div>
+    <div class="main-box">
+      <main class="main hl-main" id="main"></main>
+    </div>
   </body>
 </html>

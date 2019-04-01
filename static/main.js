@@ -126,7 +126,9 @@ var SIZES = ["2.5vmin", "3.75vmin", "5vmin", "7.5vmin", "10vmin", "15vmin",
 
 function prepare(sending) {
   var m = /\/([^/]+)\/[^/]*$/.exec(location.href);
-  document.title = decodeURIComponent(m[1]);
+  var name = decodeURIComponent(m[1]);
+  document.title = name;
+  $id("main-name").textContent = name;
   if ($query().disco) $id("main").className += " rotate";
   var url;
   if (sending) {
